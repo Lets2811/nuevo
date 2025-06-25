@@ -1,0 +1,156 @@
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 20px;
+    background-color: #f5f5f5;
+}
+
+.container {
+    max-width: 600px;
+    margin: 0 auto;
+    padding: 20px;
+    background-color: white;
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+h1 {
+    text-align: center;
+    color: #333;
+}
+
+.form-group {
+    margin-bottom: 20px;
+}
+
+label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: bold;
+}
+
+input[type="text"] {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    box-sizing: border-box;
+}
+
+button {
+    background-color: #4CAF50;
+    color: white;
+    padding: 10px 15px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 16px;
+}
+
+button:hover {
+    background-color: #45a049;
+}
+
+.hidden {
+    display: none;
+}
+
+#qrContainer {
+    margin: 20px 0;
+    text-align: center;
+}
+
+#qrContainer img {
+    max-width: 200px;
+    border: 1px solid #ddd;
+}
+
+#descargarQR {
+    display: inline-block;
+    margin-top: 10px;
+    padding: 8px 15px;
+    background-color: #2196F3;
+    color: white;
+    text-decoration: none;
+    border-radius: 4px;
+}
+
+#descargarQR:hover {
+    background-color: #0b7dda;
+}
+
+/* Agrega estos estilos al final */
+.actions {
+    margin-top: 30px;
+    text-align: center;
+}
+
+.scan-btn, .back-btn {
+    display: inline-block;
+    padding: 10px 15px;
+    background-color: #2196F3;
+    color: white;
+    text-decoration: none;
+    border-radius: 4px;
+    margin: 10px;
+}
+
+.scan-btn:hover, .back-btn:hover {
+    background-color: #0b7dda;
+}
+
+.scanner-btn {
+    background-color: #FF9800;
+    color: white;
+    padding: 10px 15px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    margin: 10px 5px;
+}
+
+.scanner-btn:hover {
+    background-color: #e68a00;
+}
+
+#scanner-container {
+    text-align: center;
+    margin: 20px 0;
+}
+
+#scanner-status {
+    margin: 10px 0;
+    padding: 8px;
+    border-radius: 4px;
+    background-color: #f5f5f5;
+}
+
+#qr-video {
+    border: 2px solid #2196F3;
+    border-radius: 4px;
+    background: black;
+    margin-bottom: 10px;
+}
+
+/* Agrega estos estilos */
+select {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    box-sizing: border-box;
+    background-color: white;
+}
+
+#resultado p {
+    margin: 8px 0;
+    padding: 8px;
+    background-color: #f9f9f9;
+    border-radius: 4px;
+}
+
+#resultado p strong {
+    display: inline-block;
+    width: 80px;
+}
+

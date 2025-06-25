@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Escaneo de Participantes</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://unpkg.com/@zxing/library@latest"></script>
+</head>
+<body>
+    <div class="container">
+        <h1>Escaneo de Participantes</h1>
+        <div id="scanner-container">
+            <video id="qr-video" width="300" height="200"></video>
+            <button id="start-scanner" class="scanner-btn">Iniciar Escáner</button>
+            <button id="stop-scanner" class="scanner-btn hidden">Detener Escáner</button>
+            <div id="scanner-status">Presiona Iniciar Escáner</div>
+        </div>
+        <!-- Actualiza el div#resultado -->
+<div id="resultado" class="hidden">
+    <h2>Participante identificado:</h2>
+    <p><strong>Nombre:</strong> <span id="nombreParticipante"></span></p>
+    <p><strong>Talla:</strong> <span id="tallaParticipante"></span></p>
+    <p><strong>Categoría:</strong> <span id="categoriaParticipante"></span></p>
+    <div id="qrContainer"></div>
+</div>
+
+        <a href="/" class="back-btn">Volver al Registro</a>
+    </div>
+    <script src="escaneo.js"></script>
+</body>
+</html>
