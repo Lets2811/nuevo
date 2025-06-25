@@ -3,12 +3,11 @@ document.getElementById('registroForm').addEventListener('submit', function(e) {
     
     // Obtener valores de los campos
     const nombre = document.getElementById('nombre').value.trim();
-    const talla = document.getElementById('talla').value;
     const categoria = document.getElementById('categoria').value;
     
-    console.log('Datos del formulario:', {nombre, talla, categoria}); // Depuración
+    console.log('Datos del formulario:', { nombre, categoria }); // Depuración
     
-    if (!nombre || !talla || !categoria) {
+    if (!nombre || !categoria) {
         alert('Por favor complete todos los campos');
         return;
     }
@@ -18,32 +17,29 @@ document.getElementById('registroForm').addEventListener('submit', function(e) {
     btn.textContent = 'Registrando...';
     
     // Mostrar datos que se enviarán
-    console.log('Enviando datos:', {nombre, talla, categoria});
+    console.log('Enviando datos:', { nombre, categoria });
     
     fetch('/registrar', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/x-www-form-urlencoded',
         },
-        body: `nombre=${encodeURIComponent(nombre)}&talla=${encodeURIComponent(talla)}&categoria=${encodeURIComponent(categoria)}`
+        body: `nombre=${encodeURIComponent(nombre)}&categoria=${encodeURIComponent(categoria)}`
     })
     .then(response => {
-        console.log('Respuesta recibida, status:', response.status); // Depuración
+        console.log('Respuesta recibida, status:', response);
         return response.json();
     })
     .then(data => {
-        console.log('Datos recibidos del servidor:', data); // Depuración
+        console.log('Datos recibidos del servidor:', data);
         
         if (data.error) throw new Error(data.error);
         
-        // Mostrar datos en la interfaz
         document.getElementById('nombreParticipante').textContent = data.nombre || 'No disponible';
-        document.getElementById('tallaParticipante').textContent = data.talla || 'No especificada';
         document.getElementById('categoriaParticipante').textContent = data.categoria || 'No especificada';
         
-        console.log('Mostrando en UI:', { // Depuración
+        console.log('Mostrando en UI:', {
             nombre: data.nombre,
-            talla: data.talla,
             categoria: data.categoria
         });
         

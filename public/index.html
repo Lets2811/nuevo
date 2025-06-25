@@ -9,51 +9,40 @@
 <body>
     <div class="container">
         <h1>Registro de Participantes</h1>
-        <!-- Modifica el formulario dentro del div.container -->
-<form id="registroForm">
-    <div class="form-group">
-        <label for="nombre">Nombre del Participante:</label>
-        <input type="text" id="nombre" name="nombre" required>
-    </div>
-    <div class="form-group">
-        <label for="talla">Talla:</label>
-        <select id="talla" name="talla" required>
-            <option value="">Seleccione talla</option>
-            <option value="XS">XS</option>
-            <option value="S">S</option>
-            <option value="M">M</option>
-            <option value="L">L</option>
-            <option value="XL">XL</option>
-        </select>
-    </div>
-    <div class="form-group">
-        <label for="categoria">Categoría:</label>
-        <select id="categoria" name="categoria" required>
-            <option value="">Seleccione categoría</option>
-            <option value="Principiante Femenino">Principiante Femenino</option>
-            <option value="Intermedio Femenino">Intermedio Femenino</option>
-            <option value="Avanzado Femenino">Avanzado Femenino</option>
-            <option value="Principiante Masculino">Principiante Masculino</option>
-            <option value="Intermedio Masculino">Intermedio Masculino</option>
-            <option value="Avanzado Masculino">Avanzado Masculino</option>
-        </select>
-    </div>
-    <button type="submit">Registrar Participante</button>
-</form>
 
-<!-- Actualiza el div#resultado -->
-<div id="resultado" class="hidden">
-    <h2>Participante registrado:</h2>
-    <p><strong>Nombre:</strong> <span id="nombreParticipante"></span></p>
-    <p><strong>Talla:</strong> <span id="tallaParticipante"></span></p>
-    <p><strong>Categoría:</strong> <span id="categoriaParticipante"></span></p>
-    <div id="qrContainer"></div>
-    <a id="descargarQR" download="qr_participante.png">Descargar QR</a>
-</div>
-        <!-- Agrega esto dentro del div.container, después del formulario -->
-<div class="actions">
-    <a href="/escaneo" class="scan-btn">Escanear QR Participante</a>
-</div>
+        <form id="registroForm">
+            <div class="form-group">
+                <label for="nombre">Nombre del Participante:</label>
+                <input type="text" id="nombre" name="nombre" required>
+            </div>
+
+            <div class="form-group">
+                <label for="categoria">Categoría:</label>
+                <select id="categoria" name="categoria" required>
+                    <option value="">Seleccione categoría</option>
+                    <option value="Principiante Femenino">Principiante Femenino</option>
+                    <option value="Intermedio Femenino">Intermedio Femenino</option>
+                    <option value="Avanzado Femenino">Avanzado Femenino</option>
+                    <option value="Principiante Masculino">Principiante Masculino</option>
+                    <option value="Intermedio Masculino">Intermedio Masculino</option>
+                    <option value="Avanzado Masculino">Avanzado Masculino</option>
+                </select>
+            </div>
+
+            <button type="submit">Registrar Participante</button>
+        </form>
+
+        <div id="resultado" class="hidden">
+            <h2>Participante registrado:</h2>
+            <p><strong>Nombre:</strong> <span id="nombreParticipante"></span></p>
+            <p><strong>Categoría:</strong> <span id="categoriaParticipante"></span></p>
+            <div id="qrContainer"></div>
+            <a id="descargarQR" download="qr_participante.png">Descargar QR</a>
+        </div>
+
+        <div class="actions">
+            <a href="/escaneo" class="scan-btn">Escanear QR Participante</a>
+        </div>
     </div>
     <script src="script.js"></script>
 </body>

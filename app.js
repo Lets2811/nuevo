@@ -7,20 +7,18 @@ const bodyParser = require('body-parser');
 const app = express();
 const PORT = 3000;
 
-// Middleware
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.static('public'));
 app.use('/qr-codes', express.static('qr-codes'));
 
-// Ruta principal
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
-// Modifica la ruta POST /registrar
 app.post('/registrar', (req, res) => {
-    const { nombre, talla, categoria } = req.body;
-    if (!nombre || !talla || !categoria) {
+    const { nombre, categoria } = req.body;
+
+    if (!nombre || !categoria) {
         return res.status(400).json({ error: 'Todos los campos son requeridos' });
     }
 
@@ -32,19 +30,17 @@ app.post('/registrar', (req, res) => {
     const filename = `qr-codes/${id}_${nombre.replace(/[^a-zA-Z0-9áéíóúÁÉÍÓÚñÑ ]/g, '_')}.png`;
     
     try {
-        const datosQR = JSON.stringify({ id, nombre, talla, categoria });
+        const datosQR = JSON.stringify({ id, nombre, categoria });
         const qr_png = qr.image(datosQR, { type: 'png' });
         qr_png.pipe(fs.createWriteStream(filename));
 
-        // Asegúrate de enviar todos los datos en la respuesta
         res.json({
             success: true,
             mensaje: 'Participante registrado',
             qrUrl: filename,
             id,
             nombre,
-            talla,    // ← Asegúrate que esto está incluido
-            categoria // ← Asegúrate que esto está incluido
+            categoria
         });
     } catch (error) {
         console.error('Error al generar QR:', error);

@@ -70,7 +70,6 @@ const salidaHoraElement = document.getElementById('salida-hora');
 
 async function buscarParticipante(qrData) {
     try {
-        // Intentar parsear el QR como JSON
         let id;
         try {
             const parsedData = JSON.parse(qrData);

@@ -2,21 +2,22 @@ body {
     font-family: Arial, sans-serif;
     margin: 0;
     padding: 20px;
-    background-color: #f5f5f5;
+    background-color: #000000;
+    color: #ffffff;
 }
 
 .container {
     max-width: 600px;
     margin: 0 auto;
     padding: 20px;
-    background-color: white;
+    background-color: #1C1C1C;
     border-radius: 8px;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 0 15px rgba(0, 255, 60, 0.3);
 }
 
 h1 {
     text-align: center;
-    color: #333;
+    color: #00FF3C;
 }
 
 .form-group {
@@ -27,28 +28,33 @@ label {
     display: block;
     margin-bottom: 5px;
     font-weight: bold;
+    color: #ffffff;
 }
 
-input[type="text"] {
+input[type="text"],
+select {
     width: 100%;
     padding: 10px;
-    border: 1px solid #ddd;
+    border: 1px solid #333;
     border-radius: 4px;
     box-sizing: border-box;
+    background-color: #111;
+    color: #ffffff;
 }
 
 button {
-    background-color: #4CAF50;
-    color: white;
+    background-color: #00FF3C;
+    color: #000000;
     padding: 10px 15px;
     border: none;
     border-radius: 4px;
     cursor: pointer;
     font-size: 16px;
+    font-weight: bold;
 }
 
 button:hover {
-    background-color: #45a049;
+    background-color: #00e636;
 }
 
 .hidden {
@@ -62,7 +68,8 @@ button:hover {
 
 #qrContainer img {
     max-width: 200px;
-    border: 1px solid #ddd;
+    border: 1px solid #333;
+    background-color: white;
 }
 
 #descargarQR {
@@ -79,13 +86,13 @@ button:hover {
     background-color: #0b7dda;
 }
 
-/* Agrega estos estilos al final */
 .actions {
     margin-top: 30px;
     text-align: center;
 }
 
-.scan-btn, .back-btn {
+.scan-btn,
+.back-btn {
     display: inline-block;
     padding: 10px 15px;
     background-color: #2196F3;
@@ -95,7 +102,8 @@ button:hover {
     margin: 10px;
 }
 
-.scan-btn:hover, .back-btn:hover {
+.scan-btn:hover,
+.back-btn:hover {
     background-color: #0b7dda;
 }
 
@@ -122,35 +130,27 @@ button:hover {
     margin: 10px 0;
     padding: 8px;
     border-radius: 4px;
-    background-color: #f5f5f5;
+    background-color: #2c2c2c;
+    color: #ffffff;
 }
 
 #qr-video {
-    border: 2px solid #2196F3;
+    border: 2px solid #00FF3C;
     border-radius: 4px;
     background: black;
     margin-bottom: 10px;
 }
 
-/* Agrega estos estilos */
-select {
-    width: 100%;
-    padding: 10px;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-    box-sizing: border-box;
-    background-color: white;
-}
-
 #resultado p {
     margin: 8px 0;
     padding: 8px;
-    background-color: #f9f9f9;
+    background-color: #333333;
     border-radius: 4px;
+    color: #ffffff;
 }
 
 #resultado p strong {
     display: inline-block;
     width: 80px;
+    color: #00FF3C;
 }
-
