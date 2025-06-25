@@ -7,43 +7,156 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
+    <!-- Navegación superior -->
+    <nav class="top-navigation">
+        <div class="nav-links">
+            <a href="/galeria" class="nav-btn gallery">🖼️ Galería QR</a>
+            <a href="/salida" class="nav-btn exit">🏃‍♂️ Registrar Salida</a>
+            <a href="/llegada" class="nav-btn arrival">🏁 Registrar Llegada</a>
+        </div>
+    </nav>
+
     <div class="container">
-        <h1>Registro de Participantes TEST</h1>
+        <header class="page-header">
+            <h1>👥 Registro de Participantes</h1>
+            <p class="subtitle">Crea tu código QR para el evento</p>
+        </header>
 
-        <form id="registroForm">
+        <form id="registroForm" class="registration-form">
             <div class="form-group">
-                <label for="nombre">Nombre del Participante:</label>
-                <input type="text" id="nombre" name="nombre" required>
+                <label for="nombre">
+                    <span class="label-icon">👤</span>
+                    Nombre del Participante:
+                </label>
+                <input type="text" id="nombre" name="nombre" required placeholder="Ingresa el nombre completo">
             </div>
-
+<br>
             <div class="form-group">
-                <label for="categoria">Categoría:</label>
+                <label for="categoria">
+                    <span class="label-icon">🏆</span>
+                    Categoría:
+                </label>
                 <select id="categoria" name="categoria" required>
-                    <option value="">Seleccione categoría</option>
-                    <option value="Principiante Femenino">Principiante Femenino</option>
-                    <option value="Intermedio Femenino">Intermedio Femenino</option>
-                    <option value="Avanzado Femenino">Avanzado Femenino</option>
-                    <option value="Principiante Masculino">Principiante Masculino</option>
-                    <option value="Intermedio Masculino">Intermedio Masculino</option>
-                    <option value="Avanzado Masculino">Avanzado Masculino</option>
+                    <option value="">🔽 Seleccione categoría</option>
+                    <option value="Principiante Femenino">🟢 Principiante Femenino</option>
+                    <option value="Intermedio Femenino">🟡 Intermedio Femenino</option>
+                    <option value="Avanzado Femenino">🔴 Avanzado Femenino</option>
+                    <option value="Principiante Masculino">🟢 Principiante Masculino</option>
+                    <option value="Intermedio Masculino">🟡 Intermedio Masculino</option>
+                    <option value="Avanzado Masculino">🔴 Avanzado Masculino</option>
                 </select>
             </div>
 
-            <button type="submit">Registrar Participante</button>
+            <button type="submit" class="submit-btn">
+                <span class="btn-icon">✅</span>
+                <span class="btn-text">Registrar Participante</span>
+                <span class="btn-loader hidden">⏳</span>
+            </button>
         </form>
 
-        <div id="resultado" class="hidden">
-            <h2>Participante registrado:</h2>
-            <p><strong>Nombre:</strong> <span id="nombreParticipante"></span></p>
-            <p><strong>Categoría:</strong> <span id="categoriaParticipante"></span></p>
-            <div id="qrContainer"></div>
-            <a id="descargarQR" download="qr_participante.png">Descargar QR</a>
+        <div id="resultado" class="hidden result-card">
+            <div class="result-header">
+                <h2>🎉 ¡Participante registrado exitosamente!</h2>
+            </div>
+            
+            <div class="result-content">
+                <div class="participant-details">
+                    <p class="detail-item">
+                        <span class="detail-icon">👤</span>
+                        <strong>Nombre:</strong> 
+                        <span id="nombreParticipante"></span>
+                    </p>
+                    <p class="detail-item">
+                        <span class="detail-icon">🏆</span>
+                        <strong>Categoría:</strong> 
+                        <span id="categoriaParticipante"></span>
+                    </p>
+                </div>
+                
+                <div id="qrContainer" class="qr-display">
+                    <!-- QR code will be inserted here -->
+                </div>
+                
+                <div class="result-actions">
+                    <a id="descargarQR" download="qr_participante.png" class="download-btn">
+                        📥 Descargar QR
+                    </a>
+                    <button onclick="resetForm()" class="secondary-btn">
+                        🔄 Registrar Otro
+                    </button>
+                </div>
+            </div>
         </div>
 
-        <div class="actions">
-            <a href="/escaneo" class="scan-btn">Escanear QR Participante</a>
+        <div class="quick-actions">
+            <h3>🚀 Acciones Rápidas</h3>
+            <div class="actions-grid">
+                <a href="/galeria" class="action-card">
+                    <div class="action-icon">🖼️</div>
+                    <div class="action-content">
+                        <h4>Ver Galería</h4>
+                        <p>Explora todos los códigos QR generados</p>
+                    </div>
+                </a>
+                
+                <a href="/escaneo" class="action-card">
+                    <div class="action-icon">📱</div>
+                    <div class="action-content">
+                        <h4>Escanear QR</h4>
+                        <p>Identifica participantes escaneando</p>
+                    </div>
+                </a>
+                
+                <a href="/reportes" class="action-card">
+                    <div class="action-icon">📊</div>
+                    <div class="action-content">
+                        <h4>Ver Reportes</h4>
+                        <p>Estadísticas y análisis del evento</p>
+                    </div>
+                </a>
+            </div>
         </div>
+
+        <footer class="page-footer">
+            <p>💡 <strong>Tip:</strong> Guarda el código QR en un lugar seguro para el día del evento</p>
+        </footer>
     </div>
+
     <script src="script.js"></script>
+    <script>
+        // Función para resetear el formulario
+        function resetForm() {
+            document.getElementById('registroForm').reset();
+            document.getElementById('resultado').classList.add('hidden');
+            document.getElementById('nombre').focus();
+        }
+
+        // Mejorar el botón de submit con estados
+        document.getElementById('registroForm').addEventListener('submit', function(e) {
+            const btn = e.target.querySelector('button[type="submit"]');
+            const btnText = btn.querySelector('.btn-text');
+            const btnIcon = btn.querySelector('.btn-icon');
+            const btnLoader = btn.querySelector('.btn-loader');
+            
+            // Estado de carga
+            btn.disabled = true;
+            btnText.textContent = 'Registrando...';
+            btnIcon.classList.add('hidden');
+            btnLoader.classList.remove('hidden');
+            
+            // Restaurar estado después del proceso (esto se manejará en script.js)
+            setTimeout(() => {
+                btn.disabled = false;
+                btnText.textContent = 'Registrar Participante';
+                btnIcon.classList.remove('hidden');
+                btnLoader.classList.add('hidden');
+            }, 3000);
+        });
+
+        // Auto-focus en el campo nombre al cargar
+        document.addEventListener('DOMContentLoaded', function() {
+            document.getElementById('nombre').focus();
+        });
+    </script>
 </body>
 </html>

@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Galería de Códigos QR</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="galeria.css">
+</head>
+<body>
+    <div class="container">
+        <header class="galeria-header">
+            <h1>Galería de Códigos QR</h1>
+            <div class="header-stats">
+                <span id="total-count">Cargando...</span>
+                <button id="refresh-btn" class="action-btn">🔄 Actualizar</button>
+            </div>
+        </header>
+
+        <div class="search-controls">
+            <input type="text" id="search-input" placeholder="Buscar por nombre o categoría..." />
+            <select id="categoria-filter">
+                <option value="">Todas las categorías</option>
+                <option value="Principiante Femenino">Principiante Femenino</option>
+                <option value="Intermedio Femenino">Intermedio Femenino</option>
+                <option value="Avanzado Femenino">Avanzado Femenino</option>
+                <option value="Principiante Masculino">Principiante Masculino</option>
+                <option value="Intermedio Masculino">Intermedio Masculino</option>
+                <option value="Avanzado Masculino">Avanzado Masculino</option>
+            </select>
+        </div>
+
+        <div class="bulk-actions">
+            <button id="select-all-btn" class="action-btn secondary">Seleccionar Todo</button>
+            <button id="download-selected-btn" class="action-btn primary" disabled>Descargar Seleccionados</button>
+            <span id="selected-count">0 seleccionados</span>
+        </div>
+
+        <div id="loading" class="loading">
+            <div class="spinner"></div>
+            <p>Cargando códigos QR...</p>
+        </div>
+
+        <div id="error-message" class="error-message hidden">
+            <p>❌ Error al cargar la galería</p>
+            <button onclick="cargarGaleria()" class="action-btn">Reintentar</button>
+        </div>
+
+        <div id="galeria-grid" class="galeria-grid">
+            <!-- Los códigos QR se cargarán aquí dinámicamente -->
+        </div>
+
+        <div id="no-results" class="no-results hidden">
+            <h3>🔍 No se encontraron códigos QR</h3>
+            <p>No hay códigos QR que coincidan con tu búsqueda.</p>
+        </div>
+
+        <div class="actions-footer">
+            <a href="/" class="back-btn">⬅ Volver al Registro</a>
+            <a href="/escaneo" class="scan-btn">📱 Escanear QR</a>
+        </div>
+    </div>
+
+    <!-- Modal para vista previa -->
+    <div id="preview-modal" class="modal hidden">
+        <div class="modal-content">
+            <span class="close-modal">&times;</span>
+            <div class="modal-body">
+                <img id="preview-image" src="" alt="Vista previa QR">
+                <div class="modal-info">
+                    <h3 id="preview-name"></h3>
+                    <p id="preview-category"></p>
+                    <p id="preview-date"></p>
+                    <button id="preview-download" class="action-btn primary">⬇ Descargar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="galeria.js"></script>
+</body>
+</html>

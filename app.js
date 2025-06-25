@@ -40,16 +40,16 @@ app.post('/registrar', async (req, res) => {
         console.log('📁 Directorio qr-codes creado');
     }
 
-    const id = Date.now();
+    const nuevo = new Participante({ nombre, categoria });
+    await nuevo.save();
+
+    const id = nuevo._id.toString();
     const filename = `qr-codes/${id}_${nombre.replace(/[^a-zA-Z0-9áéíóúÁÉÍÓÚñÑ ]/g, '_')}.png`;
     
     try {
         const datosQR = JSON.stringify({ id, nombre, categoria });
         const qr_png = qr.image(datosQR, { type: 'png' });
         qr_png.pipe(fs.createWriteStream(filename));
-
-        const nuevo = new Participante({ nombre, categoria });
-        await nuevo.save();
 
         console.log('✅ Nuevo participante registrado:', nuevo);
         console.log('📁 QR generado en:', filename);
@@ -119,6 +119,82 @@ app.get('/participante/:id', (req, res) => {
             nombre,
             qrPath: `qr-codes/${archivoQR}`
         });
+    });
+});
+// Agregar estas rutas a tu archivo app.js, después de la ruta /escaneo
+
+// Ruta para servir la página de galería
+app.get('/galeria', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'galeria.html'));
+});
+
+// API para obtener todos los códigos QR disponibles
+app.get('/api/qr-codes', async (req, res) => {
+    try {
+        // Leer archivos de la carpeta qr-codes
+        const qrFiles = fs.existsSync('qr-codes') ? fs.readdirSync('qr-codes') : [];
+        
+        // Obtener participantes de la base de datos para tener info completa
+        const participantes = await Participante.find({}).sort({ horaRegistro: -1 });
+        
+        const qrList = qrFiles.map(filename => {
+            // Extraer ID del nombre del archivo
+            const fileId = filename.split('_')[0];
+            
+            // Extraer nombre del archivo (sin extensión)
+            const nombreArchivo = filename.split('_').slice(1).join('_').replace('.png', '').replace(/_/g, ' ');
+            
+            // Buscar datos completos en la base de datos
+            const participanteDB = participantes.find(p => p._id.toString().includes(fileId) || 
+                                                      p.horaRegistro.getTime().toString() === fileId);
+            
+            return {
+                id: fileId,
+                filename: filename,
+                nombre: participanteDB ? participanteDB.nombre : nombreArchivo,
+                categoria: participanteDB ? participanteDB.categoria : 'No especificada',
+                fechaRegistro: participanteDB ? participanteDB.horaRegistro : new Date(),
+                qrPath: `qr-codes/${filename}`,
+                downloadUrl: `/qr-codes/${filename}`
+            };
+        });
+
+        // Ordenar por fecha de registro (más recientes primero)
+        qrList.sort((a, b) => new Date(b.fechaRegistro) - new Date(a.fechaRegistro));
+
+        res.json({
+            success: true,
+            total: qrList.length,
+            qrCodes: qrList
+        });
+
+    } catch (error) {
+        console.error('Error al obtener códigos QR:', error);
+        res.status(500).json({ 
+            success: false, 
+            error: 'Error al cargar la galería de códigos QR' 
+        });
+    }
+});
+
+// API para descargar un QR específico con un nombre personalizado
+app.get('/api/download/:filename', (req, res) => {
+    const filename = req.params.filename;
+    const filePath = path.join(__dirname, 'qr-codes', filename);
+    
+    if (!fs.existsSync(filePath)) {
+        return res.status(404).json({ error: 'Archivo no encontrado' });
+    }
+
+    // Extraer nombre del participante para el archivo descargado
+    const nombreParticipante = filename.split('_').slice(1).join('_').replace('.png', '').replace(/_/g, '_');
+    const downloadName = `QR_${nombreParticipante}.png`;
+
+    res.download(filePath, downloadName, (error) => {
+        if (error) {
+            console.error('Error al descargar archivo:', error);
+            res.status(500).json({ error: 'Error al descargar el archivo' });
+        }
     });
 });
 

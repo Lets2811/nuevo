@@ -8,29 +8,122 @@
   <script src="https://unpkg.com/@zxing/library@latest"></script>
 </head>
 <body>
+  <!-- Navegación superior -->
+  <nav class="top-navigation">
+    <div class="nav-links">
+      <a href="/" class="nav-btn home">🏠 Inicio</a>
+      <a href="/galeria" class="nav-btn gallery">🖼️ Galería QR</a>
+    </div>
+  </nav>
+
   <div class="container">
-    <h1>Escaneo de Participantes</h1>
+    <header class="page-header">
+      <h1>📱 Escaneo de Participantes</h1>
+      <p class="subtitle">Identifica participantes escaneando su código QR</p>
+    </header>
 
-    <div id="scanner-container">
-      <video id="qr-video" autoplay muted playsinline></video>
-      <div class="buttons">
-        <button id="start-scanner" class="scanner-btn">Iniciar Escáner</button>
-        <button id="stop-scanner" class="scanner-btn hidden">Detener Escáner</button>
+    <div id="scanner-container" class="scanner-section">
+      <div class="camera-wrapper">
+        <video id="qr-video" autoplay muted playsinline></video>
+        <div class="camera-overlay">
+          <div class="scan-frame"></div>
+        </div>
       </div>
-      <div id="scanner-status">Presiona "Iniciar Escáner"</div>
+      
+      <div class="scanner-controls">
+        <div class="buttons">
+          <button id="start-scanner" class="scanner-btn primary">
+            <span class="btn-icon">📷</span>
+            <span class="btn-text">Iniciar Escáner</span>
+          </button>
+          <button id="stop-scanner" class="scanner-btn secondary hidden">
+            <span class="btn-icon">⏹️</span>
+            <span class="btn-text">Detener Escáner</span>
+          </button>
+        </div>
+        
+        <div id="scanner-status" class="status-display">
+          <span class="status-icon">ℹ️</span>
+          <span class="status-text">Presiona "Iniciar Escáner"</span>
+        </div>
+      </div>
     </div>
 
-    <div id="resultado" class="hidden">
-      <h2>Participante identificado:</h2>
-      <p><strong>Nombre:</strong> <span id="nombreParticipante"></span></p>
-      <p><strong>Categoría:</strong> <span id="categoriaParticipante"></span></p>
+    <div id="resultado" class="hidden result-card">
+      <div class="result-header">
+        <h2>🎯 ¡Participante identificado!</h2>
+      </div>
+      
+      <div class="result-content">
+        <div class="participant-details">
+          <div class="detail-item">
+            <span class="detail-icon">👤</span>
+            <div class="detail-content">
+              <strong>Nombre:</strong>
+              <span id="nombreParticipante" class="detail-value"></span>
+            </div>
+          </div>
+          
+          <div class="detail-item">
+            <span class="detail-icon">🏆</span>
+            <div class="detail-content">
+              <strong>Categoría:</strong>
+              <span id="categoriaParticipante" class="detail-value"></span>
+            </div>
+          </div>
+        </div>
+        
+        <div class="result-actions">
+          <button onclick="resetScanner()" class="action-btn primary">
+            🔄 Escanear Otro
+          </button>
+        </div>
+      </div>
     </div>
 
-    <div class="actions">
-      <a href="/" class="back-btn">Volver al Registro</a>
+    <div class="quick-actions">
+      <h3>🚀 Acciones Rápidas</h3>
+      <div class="actions-grid">
+        <a href="/" class="action-card">
+          <div class="action-icon">✍️</div>
+          <div class="action-content">
+            <h4>Registrar Participante</h4>
+            <p>Crear nuevo código QR</p>
+          </div>
+        </a>
+        
+        <a href="/galeria" class="action-card">
+          <div class="action-icon">🖼️</div>
+          <div class="action-content">
+            <h4>Ver Galería</h4>
+            <p>Explorar todos los QR</p>
+          </div>
+        </a>
+      </div>
     </div>
+
+    <footer class="page-footer">
+      <p>💡 <strong>Tip:</strong> Asegúrate de que el código QR esté bien iluminado y enfocado</p>
+    </footer>
   </div>
 
   <script src="escaneo.js"></script>
+  <script>
+    // Función para resetear el escáner
+    function resetScanner() {
+      document.getElementById('resultado').classList.add('hidden');
+      document.getElementById('scanner-status').innerHTML = `
+        <span class="status-icon">ℹ️</span>
+        <span class="status-text">Presiona "Iniciar Escáner"</span>
+      `;
+      
+      // Mostrar botón de iniciar, ocultar botón de detener
+      document.getElementById('start-scanner').classList.remove('hidden');
+      document.getElementById('stop-scanner').classList.add('hidden');
+    }
+
+    // Función global para usar en escaneo.js
+    window.resetScanner = resetScanner;
+  </script>
 </body>
 </html>
