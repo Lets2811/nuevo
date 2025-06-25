@@ -17,7 +17,7 @@ document.getElementById('registroForm').addEventListener('submit', function(e) {
     btn.textContent = 'Registrando...';
     
     // Mostrar datos que se enviarán
-    console.log('Enviando datos:', { nombre, categoria });
+    console.log('Enviando datos: *****************', { nombre, categoria });
     
     fetch('/registrar', {
         method: 'POST',
@@ -27,7 +27,7 @@ document.getElementById('registroForm').addEventListener('submit', function(e) {
         body: `nombre=${encodeURIComponent(nombre)}&categoria=${encodeURIComponent(categoria)}`
     })
     .then(response => {
-        console.log('Respuesta recibida, status:', response);
+        console.log('Respuesta recibida, status: *****', response);
         return response.json();
     })
     .then(data => {

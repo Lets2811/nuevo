@@ -3,6 +3,8 @@ const qr = require('qr-image');
 const path = require('path');
 const fs = require('fs');
 const bodyParser = require('body-parser');
+const connectDB = require('./utils/db');
+const Participante = require('./utils/pariticpantModel');
 
 const app = express();
 const PORT = 3000;
@@ -11,19 +13,31 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.static('public'));
 app.use('/qr-codes', express.static('qr-codes'));
 
+connectDB();
+
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
-app.post('/registrar', (req, res) => {
+app.post('/registrar', async (req, res) => {
+    // 🔥 LOGS DE DEBUGGING - AGREGAR ESTAS LÍNEAS
+    console.log('='.repeat(50));
+    console.log('🚀 RUTA /registrar EJECUTÁNDOSE');
+    console.log('📅 Timestamp:', new Date().toISOString());
+    console.log('📦 Body recibido:', req.body);
+    console.log('🔧 Headers:', req.headers);
+    console.log('='.repeat(50));
+
     const { nombre, categoria } = req.body;
 
     if (!nombre || !categoria) {
+        console.log('❌ Faltan campos requeridos');
         return res.status(400).json({ error: 'Todos los campos son requeridos' });
     }
 
     if (!fs.existsSync('qr-codes')) {
         fs.mkdirSync('qr-codes');
+        console.log('📁 Directorio qr-codes creado');
     }
 
     const id = Date.now();
@@ -34,16 +48,25 @@ app.post('/registrar', (req, res) => {
         const qr_png = qr.image(datosQR, { type: 'png' });
         qr_png.pipe(fs.createWriteStream(filename));
 
-        res.json({
+        const nuevo = new Participante({ nombre, categoria });
+        await nuevo.save();
+
+        console.log('✅ Nuevo participante registrado:', nuevo);
+        console.log('📁 QR generado en:', filename);
+        
+        const response = {
             success: true,
             mensaje: 'Participante registrado',
             qrUrl: filename,
             id,
             nombre,
-            categoria
-        });
+            categoria,
+        };
+
+        console.log('📤 Respuesta enviada:', response);
+        res.json(response);
     } catch (error) {
-        console.error('Error al generar QR:', error);
+        console.error('💥 Error al generar QR:', error);
         res.status(500).json({ error: 'Error al generar QR' });
     }
 });
@@ -101,5 +124,4 @@ app.get('/participante/:id', (req, res) => {
 
 app.listen(PORT, () => {
     console.log(`Servidor corriendo en http://localhost:${PORT}`);
-    console.log('Usa ngrok para exponerlo públicamente: ngrok http 3000');
 });
