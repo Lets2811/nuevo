@@ -122,6 +122,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // Función mejorada para mostrar resultado
     function mostrarResultado(participante) {
+        console.log('Mostrando resultado:', participante);
         try {
             // Si el participante viene como string JSON, parsearlo
             if (typeof participante === 'string') {

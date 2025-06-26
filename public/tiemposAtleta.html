@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Tiempos Generales</title>
+  <link rel="stylesheet" href="mobile-scan.css" />
+  <style>
+    /* Estilos específicos para la vista de tiempos */
+    .filters-section {
+      background: #f8f9fa;
+      padding: 20px;
+      border-radius: 10px;
+      margin-bottom: 20px;
+      border: 1px solid #dee2e6;
+    }
+    
+    .filters-grid {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 15px;
+      align-items: end;
+    }
+    
+    .filter-group {
+      display: flex;
+      flex-direction: column;
+    }
+    
+    .filter-group label {
+      font-weight: bold;
+      margin-bottom: 5px;
+      color: #495057;
+    }
+    
+    .filter-group select {
+      padding: 8px 12px;
+      border: 1px solid #ced4da;
+      border-radius: 5px;
+      font-size: 1rem;
+    }
+    
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 15px;
+      margin-bottom: 30px;
+    }
+    
+    .stat-card {
+      background: white;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+      text-align: center;
+      border-left: 4px solid #4CAF50;
+    }
+    
+    .stat-card.podium {
+      border-left-color: #FFD700;
+    }
+    
+    .stat-card.general {
+      border-left-color: #007bff;
+    }
+    
+    .stat-number {
+      font-size: 2rem;
+      font-weight: bold;
+      color: #333;
+      margin-bottom: 5px;
+    }
+    
+    .stat-label {
+      color: #666;
+      font-size: 0.9rem;
+    }
+    
+    .times-table {
+      background: white;
+      border-radius: 10px;
+      overflow: hidden;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    }
+    
+    .table-header {
+      background: #4CAF50;
+      color: white;
+      padding: 15px 20px;
+      font-weight: bold;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    
+    .table-container {
+      max-height: 600px;
+      overflow-y: auto;
+    }
+    
+    .times-list {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+    }
+    
+    .time-item {
+      display: grid;
+      grid-template-columns: 60px 1fr 120px 120px 140px;
+      gap: 15px;
+      padding: 15px 20px;
+      border-bottom: 1px solid #eee;
+      align-items: center;
+    }
+    
+    .time-item:hover {
+      background: #f8f9fa;
+    }
+    
+    .time-item.podium-1 {
+      background: linear-gradient(90deg, #FFD700, #fff);
+      border-left: 4px solid #FFD700;
+    }
+    
+    .time-item.podium-2 {
+      background: linear-gradient(90deg, #C0C0C0, #fff);
+      border-left: 4px solid #C0C0C0;
+    }
+    
+    .time-item.podium-3 {
+      background: linear-gradient(90deg, #CD7F32, #fff);
+      border-left: 4px solid #CD7F32;
+    }
+    
+    .position {
+      font-size: 1.2rem;
+      font-weight: bold;
+      text-align: center;
+      color: #333;
+    }
+    
+    .participant-info {
+      display: flex;
+      flex-direction: column;
+    }
+    
+    .participant-name {
+      font-weight: bold;
+      color: #333;
+      margin-bottom: 2px;
+    }
+    
+    .participant-category {
+      color: #666;
+      font-size: 0.9rem;
+    }
+    
+    .time-value {
+      font-family: 'Courier New', monospace;
+      font-weight: bold;
+      text-align: center;
+      color: #333;
+      font-size: 0.9rem;
+    }
+    
+    .time-value.total-time {
+      color: #4CAF50;
+      font-size: 1.1rem;
+    }
+    
+    .loading-spinner {
+      text-align: center;
+      padding: 40px;
+      color: #666;
+    }
+    
+    .loading-spinner::before {
+      content: '⏳';
+      font-size: 2rem;
+      display: block;
+      margin-bottom: 10px;
+      animation: spin 2s linear infinite;
+    }
+    
+    @keyframes spin {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+    
+    .empty-state {
+      text-align: center;
+      padding: 60px 20px;
+      color: #666;
+    }
+    
+    .empty-state::before {
+      content: '📊';
+      font-size: 3rem;
+      display: block;
+      margin-bottom: 15px;
+    }
+    
+    .table-headers {
+      background: #f8f9fa;
+      padding: 10px 20px;
+      border-bottom: 2px solid #dee2e6;
+      font-weight: bold;
+      color: #495057;
+      display: grid;
+      grid-template-columns: 60px 1fr 120px 120px 140px;
+      gap: 15px;
+      font-size: 0.9rem;
+    }
+    
+    /* Responsive */
+    @media (max-width: 768px) {
+      .time-item {
+        grid-template-columns: 50px 1fr;
+        gap: 10px;
+      }
+      
+      .table-headers {
+        display: none;
+      }
+      
+      .time-details {
+        display: grid;
+        grid-template-columns: 1fr 1fr 1fr;
+        gap: 10px;
+        margin-top: 10px;
+      }
+      
+      .filters-grid {
+        grid-template-columns: 1fr;
+        gap: 15px;
+      }
+      
+      .stats-grid {
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      }
+    }
+    
+    @media (max-width: 480px) {
+      .time-details {
+        grid-template-columns: 1fr;
+        gap: 5px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Navegación superior -->
+  <nav class="top-navigation">
+    <div class="nav-links">
+      <a href="/" class="nav-btn home">🏠 Home</a>
+      <a href="/galeria" class="nav-btn gallery">🖼️ Galería QR</a>
+      <a href="/salida" class="nav-btn exit">🏃‍♂️ Registrar Salida</a>
+      <a href="/llegada" class="nav-btn arrival">🏁 Registrar Llegada</a>
+      <a href="/tiempos" class="nav-btn arrival">⏰ Tiempos</a>
+    </div>
+    
+  </nav>
+
+  <div class="container">
+    <header class="page-header">
+      <h1>⏱️ Tiempos Completados</h1>
+      <p class="subtitle">Resultados de participantes que han completado la carrera</p>
+    </header>
+
+    <!-- Filtros simplificados -->
+    <section class="filters-section">
+      <h3>🔍 Filtros</h3>
+      <div class="filters-grid">
+        
+        
+        <button id="actualizarBtn" class="btn btn-primary">
+          🔄 Actualizar
+        </button>
+      </div>
+    </section>
+
+    <!-- Estadísticas simplificadas -->
+    <section id="estadisticas" class="stats-grid">
+      <div class="stat-card general">
+        <div class="stat-number" id="totalCompletados">-</div>
+        <div class="stat-label">Participantes Completados</div>
+      </div>
+      
+      <div class="stat-card podium">
+        <div class="stat-number" id="tiempoPromedio">-</div>
+        <div class="stat-label">Tiempo Promedio</div>
+      </div>
+      
+      <div class="stat-card">
+        <div class="stat-number" id="tiempoMejor">-</div>
+        <div class="stat-label">Mejor Tiempo</div>
+      </div>
+    </section>
+
+    <!-- Tabla de tiempos -->
+    <section class="times-table">
+      <div class="table-header">
+        <span>🏆 Resultados Completados</span>
+        <span id="contadorResultados">0 resultados</span>
+      </div>
+      
+      <div id="loadingState" class="loading-spinner">
+        Cargando tiempos...
+      </div>
+      
+      <div id="emptyState" class="empty-state" style="display: none;">
+        <h3>No hay tiempos completados</h3>
+        <p>Aún no hay participantes que hayan completado la carrera</p>
+      </div>
+      
+      <div class="table-container" id="tableContainer" style="display: none;">
+        <div class="table-headers">
+          <span>Pos.</span>
+          <span>Participante</span>
+          <span>Hora Salida</span>
+          <span>Hora Llegada</span>
+          <span>Tiempo Total</span>
+        </div>
+        <ul class="times-list" id="timesList">
+          <!-- Los resultados se cargarán dinámicamente aquí -->
+        </ul>
+      </div>
+    </section>
+
+    <!-- Podium top 3 -->
+    <section id="podiumSection" style="display: none;" class="quick-actions">
+      <h3>🏆 Podium - Top 3</h3>
+      <div class="actions-grid" id="podiumGrid">
+        <!-- El podium se cargará dinámicamente -->
+      </div>
+    </section>
+
+    <footer class="page-footer">
+      <p>💡 <strong>Tip:</strong> Solo se muestran participantes con salida Y llegada registradas</p>
+    </footer>
+  </div>
+
+  <script src="tiempos.js"></script>
+</body>
+</html>

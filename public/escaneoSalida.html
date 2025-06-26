@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Registrar Salida</title>
+  <link rel="stylesheet" href="mobile-scan.css" />
+  <script src="https://unpkg.com/@zxing/library@latest"></script>
+</head>
+<body>
+  <!-- Navegación superior -->
+  <nav class="top-navigation">
+    <div class="nav-links">
+      <a href="/" class="nav-btn home">🏠 Inicio</a>
+      <a href="/galeria" class="nav-btn gallery">🖼️ Galería QR</a>
+      <a href="/escaneo" class="nav-btn arrival">🏁 Registrar Llegada</a>
+    </div>
+  </nav>
+
+  <div class="container">
+    <header class="page-header">
+      <h1>🏃‍♂️ Registrar Salida</h1>
+      <p class="subtitle">Escanea el código QR del participante para registrar su salida</p>
+    </header>
+
+    <div id="scanner-container" class="scanner-section">
+      <div class="camera-wrapper">
+        <video id="qr-video" autoplay muted playsinline></video>
+        <div class="camera-overlay">
+          <div class="scan-frame"></div>
+        </div>
+      </div>
+      
+      <div class="scanner-controls">
+        <div class="buttons">
+          <button id="start-scanner" class="scanner-btn primary">
+            <span class="btn-icon">🏃‍♂️</span>
+            <span class="btn-text">Registrar Salida</span>
+          </button>
+        </div>
+        
+        <div id="scanner-status" class="status-display">
+          <span class="status-icon">ℹ️</span>
+          <span class="status-text">Presiona "Registrar Salida"</span>
+        </div>
+      </div>
+    </div>
+
+    <div id="resultado" class="hidden result-card">
+      <div class="result-header">
+        <h2>✅ ¡Salida registrada exitosamente!</h2>
+      </div>
+      
+      <div class="result-content">
+        <div class="participant-details">
+          <div class="detail-item">
+            <span class="detail-icon">👤</span>
+            <div class="detail-content">
+              <strong>Participante:</strong>
+              <span id="nombreParticipante" class="detail-value"></span>
+            </div>
+          </div>
+          
+          <div class="detail-item">
+            <span class="detail-icon">🏆</span>
+            <div class="detail-content">
+              <strong>Categoría:</strong>
+              <span id="categoriaParticipante" class="detail-value"></span>
+            </div>
+          </div>
+
+          <div class="detail-item">
+            <span class="detail-icon">🕐</span>
+            <div class="detail-content">
+              <strong>Hora de Salida:</strong>
+              <span id="horaSalida" class="detail-value"></span>
+            </div>
+          </div>
+        </div>
+        
+        <div class="result-actions">
+          <button onclick="resetScanner()" class="action-btn primary">
+            🔄 Registrar Otra Salida
+          </button>
+          <button onclick="verTiempos()" class="action-btn secondary">
+            ⏱️ Ver Tiempos
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div class="quick-actions">
+      <h3>🚀 Acciones Rápidas</h3>
+      <div class="actions-grid">
+        <a href="/escaneo" class="action-card">
+          <div class="action-icon">🏁</div>
+          <div class="action-content">
+            <h4>Registrar Llegada</h4>
+            <p>Marcar llegada de participante</p>
+          </div>
+        </a>
+        
+        <a href="/galeria" class="action-card">
+          <div class="action-icon">🖼️</div>
+          <div class="action-content">
+            <h4>Ver Galería</h4>
+            <p>Explorar todos los QR</p>
+          </div>
+        </a>
+
+        <a href="/reportes" class="action-card">
+          <div class="action-icon">📊</div>
+          <div class="action-content">
+            <h4>Ver Reportes</h4>
+            <p>Tiempos y estadísticas</p>
+          </div>
+        </a>
+      </div>
+    </div>
+
+    <footer class="page-footer">
+      <p>💡 <strong>Tip:</strong> Registra la salida tan pronto como el participante comience la carrera</p>
+    </footer>
+  </div>
+
+  <!-- Usar el archivo JavaScript específico para salidas -->
+  <script src="registrarSalida.js"></script>
+</body>
+</html>
