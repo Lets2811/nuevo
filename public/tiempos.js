@@ -32,7 +32,7 @@ document.addEventListener('DOMContentLoaded', function() {
     cargarTiempos();
     
     // Auto-actualización cada 30 segundos
-    setInterval(cargarTiempos, 30000);
+    //setInterval(cargarTiempos, 30000);
 });
 
 // Cargar tiempos desde el servidor
@@ -95,8 +95,23 @@ function actualizarFiltrosCategorias() {
 }
 
 // Aplicar filtro por categoría
+// Aplicar filtro por categoría - SOLO REEMPLAZA ESTA FUNCIÓN
 function aplicarFiltroCategoria() {
     categoriaActual = categoriaFilter.value;
+    
+    // Obtener referencias a las secciones
+    const timesTable = document.querySelector('.times-table');
+    const podiumSection = document.getElementById('podiumSection');
+    
+    // Si está en "all", ocultar las secciones y salir
+    if (categoriaActual === 'all') {
+        if (timesTable) timesTable.style.display = 'none';
+        if (podiumSection) podiumSection.style.display = 'none';
+        return;
+    }
+    
+    // Si hay una categoría específica, mostrar las secciones
+    if (timesTable) timesTable.style.display = 'block';
     
     // Filtrar por categoría
     let datosFiltrados = tiemposCompletados;
