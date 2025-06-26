@@ -20,8 +20,50 @@
   <div class="container">
     <header class="page-header">
       <h1>🏃‍♂️ Registrar Salida</h1>
-      <p class="subtitle">Escanea el código QR del participante para registrar su salida</p>
+      <p class="subtitle">Escanea los códigos QR de los 3 competidores para registrar su salida simultánea</p>
     </header>
+
+    <!-- Sección de información de la ronda -->
+    <div id="team-info" class="team-section">
+      <div class="team-header">
+        <h3>🏁 Competidores de la Ronda</h3>
+        <div class="team-progress">
+          <span id="team-counter">0/3</span> competidores registrados
+        </div>
+      </div>
+      
+      <div id="team-members" class="team-members">
+        <div class="member-slot empty" data-member="1">
+          <div class="member-icon">👤</div>
+          <div class="member-info">
+            <span class="member-label">Competidor 1</span>
+            <span class="member-status">Pendiente</span>
+          </div>
+        </div>
+        
+        <div class="member-slot empty" data-member="2">
+          <div class="member-icon">👤</div>
+          <div class="member-info">
+            <span class="member-label">Competidor 2</span>
+            <span class="member-status">Pendiente</span>
+          </div>
+        </div>
+        
+        <div class="member-slot empty" data-member="3">
+          <div class="member-icon">👤</div>
+          <div class="member-info">
+            <span class="member-label">Competidor 3</span>
+            <span class="member-status">Pendiente</span>
+          </div>
+        </div>
+      </div>
+      
+      <div class="team-actions">
+        <button id="clear-team" class="action-btn secondary" onclick="limpiarRonda()" style="display: none;">
+          🗑️ Limpiar Ronda
+        </button>
+      </div>
+    </div>
 
     <div id="scanner-container" class="scanner-section">
       <div class="camera-wrapper">
@@ -34,30 +76,30 @@
       <div class="scanner-controls">
         <div class="buttons">
           <button id="start-scanner" class="scanner-btn primary">
-            <span class="btn-icon">🏃‍♂️</span>
-            <span class="btn-text">Registrar Salida</span>
+            <span class="btn-icon">📱</span>
+            <span class="btn-text">Escanear Competidor</span>
           </button>
         </div>
         
         <div id="scanner-status" class="status-display">
           <span class="status-icon">ℹ️</span>
-          <span class="status-text">Presiona "Registrar Salida"</span>
+          <span class="status-text">Presiona "Escanear Competidor"</span>
         </div>
       </div>
     </div>
 
     <div id="resultado" class="hidden result-card">
       <div class="result-header">
-        <h2>✅ ¡Salida registrada exitosamente!</h2>
+        <h2>✅ ¡Salidas registradas exitosamente!</h2>
       </div>
       
       <div class="result-content">
         <div class="participant-details">
           <div class="detail-item">
-            <span class="detail-icon">👤</span>
+            <span class="detail-icon">🏁</span>
             <div class="detail-content">
-              <strong>Participante:</strong>
-              <span id="nombreParticipante" class="detail-value"></span>
+              <strong>Ronda:</strong>
+              <span id="equipoNombre" class="detail-value"></span>
             </div>
           </div>
           
@@ -76,11 +118,19 @@
               <span id="horaSalida" class="detail-value"></span>
             </div>
           </div>
+
+          <div class="detail-item">
+            <span class="detail-icon">👤</span>
+            <div class="detail-content">
+              <strong>Competidores:</strong>
+              <div id="miembrosLista" class="members-list"></div>
+            </div>
+          </div>
         </div>
         
         <div class="result-actions">
           <button onclick="resetScanner()" class="action-btn primary">
-            🔄 Registrar Otra Salida
+            🔄 Registrar Otra Ronda
           </button>
           <button onclick="verTiempos()" class="action-btn secondary">
             ⏱️ Ver Tiempos
@@ -119,11 +169,143 @@
     </div>
 
     <footer class="page-footer">
-      <p>💡 <strong>Tip:</strong> Registra la salida tan pronto como el participante comience la carrera</p>
+      <p>💡 <strong>Tip:</strong> Escanea los QR de los 3 competidores antes de que inicie la ronda</p>
     </footer>
   </div>
 
-  <!-- Usar el archivo JavaScript específico para salidas -->
+  <!-- Estilos adicionales para competidores -->
+  <style>
+    .team-section {
+      background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+      border: 2px solid #00FF3C;
+      border-radius: 15px;
+      padding: 20px;
+      margin: 20px 0;
+      box-shadow: 0 8px 32px rgba(0, 255, 60, 0.1);
+    }
+
+    .team-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+    }
+
+    .team-header h3 {
+      margin: 0;
+      color: #00FF3C;
+      font-size: 1.4em;
+    }
+
+    .team-progress {
+      background-color: #333;
+      padding: 8px 15px;
+      border-radius: 20px;
+      color: #00FF3C;
+      font-weight: bold;
+      border: 1px solid #00FF3C;
+    }
+
+    .team-members {
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+      margin-bottom: 20px;
+    }
+
+    .member-slot {
+      display: flex;
+      align-items: center;
+      padding: 15px;
+      border-radius: 10px;
+      border: 2px solid #444;
+      background-color: #2a2a2a;
+      transition: all 0.3s ease;
+    }
+
+    .member-slot.filled {
+      border-color: #00FF3C;
+      background-color: #1a3d1a;
+      animation: memberAdded 0.5s ease;
+    }
+
+    .member-slot.empty {
+      border-style: dashed;
+    }
+
+    .member-icon {
+      font-size: 2em;
+      margin-right: 15px;
+      width: 50px;
+      text-align: center;
+    }
+
+    .member-info {
+      flex: 1;
+    }
+
+    .member-label {
+      display: block;
+      font-weight: bold;
+      color: #fff;
+      margin-bottom: 5px;
+    }
+
+    .member-status {
+      display: block;
+      font-size: 0.9em;
+      color: #888;
+    }
+
+    .member-slot.filled .member-status {
+      color: #00FF3C;
+    }
+
+    .team-actions {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+    }
+
+    .members-list {
+      margin-top: 10px;
+    }
+
+    .member-item {
+      padding: 8px 12px;
+      background-color: #333;
+      border-radius: 8px;
+      margin: 5px 0;
+      border-left: 3px solid #00FF3C;
+    }
+
+    @keyframes memberAdded {
+      0% { transform: scale(0.9); opacity: 0.5; }
+      50% { transform: scale(1.05); }
+      100% { transform: scale(1); opacity: 1; }
+    }
+
+    @media (max-width: 768px) {
+      .team-header {
+        flex-direction: column;
+        gap: 10px;
+        text-align: center;
+      }
+      
+      .member-slot {
+        padding: 12px;
+      }
+      
+      .member-icon {
+        font-size: 1.5em;
+        margin-right: 10px;
+        width: 40px;
+      }
+    }
+  </style>
+
+  <!-- Usar el archivo JavaScript modificado -->
   <script src="registrarSalida.js"></script>
 </body>
 </html>

@@ -263,6 +263,7 @@ app.post('/registrar-salida', async (req, res) => {
             });
         }
 
+        // OPTIMIZADO: Obtener el próximo número de salida de manera más eficiente
         const ultimaSalida = await Salida.findOne({}, {}, { sort: { numeroSalida: -1 } });
         const numeroSalida = ultimaSalida ? ultimaSalida.numeroSalida + 1 : 1;
 
