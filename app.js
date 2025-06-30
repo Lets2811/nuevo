@@ -33,9 +33,13 @@ app.post('/registrar', async (req, res) => {
     console.log('📦 Body recibido:', req.body);
     console.log('='.repeat(50));
 
-    const { nombre, categoria } = req.body;
+    const { nombre, categoria, numero } = req.body;
 
-    if (!nombre || !categoria) {
+    if (!nombre || !categoria || !numero) {
+        console.log('❌ Faltan campos requeridos:', { nombre, categoria, numero });
+        console.log('  - nombre:', nombre);
+        console.log('  - categoria:', categoria);
+        console.log('  - numero:', numero);
         console.log('❌ Faltan campos requeridos');
         return res.status(400).json({ error: 'Todos los campos son requeridos' });
     }
@@ -46,7 +50,7 @@ app.post('/registrar', async (req, res) => {
     }
 
     try {
-        const nuevo = new Participante({ nombre, categoria });
+        const nuevo = new Participante({ nombre, categoria, numero });
         await nuevo.save();
 
         const id = nuevo._id.toString();
@@ -321,6 +325,10 @@ app.post('/registrar-salida', async (req, res) => {
             detalles: process.env.NODE_ENV === 'development' ? error.message : undefined
         });
     }
+});
+
+app.get('/participantes', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'participantes.html'));
 });
 
 app.get('/api/salidas', async (req, res) => {
@@ -912,6 +920,280 @@ app.get('/api/estadisticas-completados', async (req, res) => {
             detalles: process.env.NODE_ENV === 'development' ? error.message : undefined
         });
     }
+});
+
+app.post('/registrar', async (req, res) => {
+    console.log('='.repeat(50));
+    console.log('🚀 RUTA /registrar EJECUTÁNDOSE');
+    console.log('📅 Timestamp:', new Date().toISOString());
+    console.log('📦 Body recibido:', req.body);
+    console.log('='.repeat(50));
+
+    const { numero, nombre, categoria } = req.body;
+
+    // Validaciones mejoradas
+    if (!numero || !nombre || !categoria) {
+        console.log('❌ Faltan campos requeridos');
+        return res.status(400).json({ 
+            error: 'Todos los campos son requeridos',
+            faltantes: {
+                numero: !numero,
+                nombre: !nombre,
+                categoria: !categoria
+            }
+        });
+    }
+
+    // Validar número
+    const numeroInt = parseInt(numero);
+    if (isNaN(numeroInt) || numeroInt <= 0) {
+        console.log('❌ Número inválido:', numero);
+        return res.status(400).json({ 
+            error: 'El número debe ser un entero positivo' 
+        });
+    }
+
+    // Validar categoría
+    const categoriesValidas = [
+        'Principiante Femenino', 'Intermedio Femenino', 'Avanzado Femenino',
+        'Principiante Masculino', 'Intermedio Masculino', 'Avanzado Masculino'
+    ];
+    
+    if (!categoriesValidas.includes(categoria)) {
+        console.log('❌ Categoría inválida:', categoria);
+        return res.status(400).json({ 
+            error: 'Categoría no válida',
+            categoriasValidas: categoriesValidas
+        });
+    }
+
+    // Crear directorio si no existe
+    if (!fs.existsSync('qr-codes')) {
+        fs.mkdirSync('qr-codes', { recursive: true });
+        console.log('📁 Directorio qr-codes creado');
+    }
+
+    try {
+        // Verificar si el número ya existe
+        const participanteExistente = await Participante.findOne({ numero: numeroInt });
+        if (participanteExistente) {
+            console.log('❌ Número ya registrado:', numeroInt);
+            return res.status(409).json({ 
+                error: `El número ${numeroInt} ya está registrado para ${participanteExistente.nombre}`
+            });
+        }
+
+        // Crear nuevo participante
+        const nuevo = new Participante({ 
+            numero: numeroInt, 
+            nombre: nombre.trim(), 
+            categoria 
+        });
+        
+        await nuevo.save();
+
+        // Generar archivo QR
+        const id = nuevo._id.toString();
+        const nombreArchivo = `${numeroInt}_${nombre.replace(/[^a-zA-Z0-9áéíóúÁÉÍÓÚñÑ ]/g, '_')}.png`;
+        const rutaCompleta = path.join('qr-codes', nombreArchivo);
+        
+        // Datos para el QR (incluir número)
+        const datosQR = JSON.stringify({ 
+            id, 
+            numero: numeroInt,
+            nombre, 
+            categoria,
+            timestamp: new Date().toISOString()
+        });
+        
+        // Generar QR
+        const qr_png = qr.image(datosQR, { 
+            type: 'png',
+            size: 10,
+            margin: 2
+        });
+        
+        qr_png.pipe(fs.createWriteStream(rutaCompleta));
+
+        // Actualizar registro con info del QR
+        nuevo.qrGenerado = true;
+        nuevo.archivoQR = rutaCompleta;
+        await nuevo.save();
+
+        console.log('✅ Nuevo participante registrado:', {
+            id: nuevo._id,
+            numero: nuevo.numero,
+            nombre: nuevo.nombre,
+            categoria: nuevo.categoria
+        });
+        console.log('📁 QR generado en:', rutaCompleta);
+        
+        const response = {
+            success: true,
+            mensaje: 'Participante registrado exitosamente',
+            qrUrl: `/${rutaCompleta}`, // URL relativa para el frontend
+            id,
+            numero: numeroInt,
+            nombre,
+            categoria,
+            fechaRegistro: nuevo.fechaRegistro
+        };
+
+        console.log('📤 Respuesta enviada:', response);
+        res.json(response);
+        
+    } catch (error) {
+        console.error('💥 Error al registrar participante:', error);
+        
+        // Manejar diferentes tipos de errores
+        if (error.code === 11000) {
+            // Error de duplicado en MongoDB
+            const campo = Object.keys(error.keyPattern)[0];
+            return res.status(409).json({ 
+                error: `Ya existe un participante con ${campo}: ${error.keyValue[campo]}`
+            });
+        }
+        
+        if (error.name === 'ValidationError') {
+            const errores = Object.values(error.errors).map(err => err.message);
+            return res.status(400).json({ 
+                error: 'Datos inválidos',
+                detalles: errores
+            });
+        }
+        
+        res.status(500).json({ 
+            error: 'Error interno del servidor',
+            mensaje: 'Por favor intente nuevamente'
+        });
+    }
+});
+
+// ===========================================
+// NUEVA RUTA PARA CARGA MASIVA
+// ===========================================
+
+app.post('/registrar-lote', async (req, res) => {
+    console.log('='.repeat(50));
+    console.log('🚀 RUTA /registrar-lote EJECUTÁNDOSE');
+    console.log('📅 Timestamp:', new Date().toISOString());
+    console.log('='.repeat(50));
+
+    const { participantes } = req.body;
+
+    if (!participantes || !Array.isArray(participantes) || participantes.length === 0) {
+        return res.status(400).json({
+            error: 'Se requiere un array de participantes'
+        });
+    }
+
+    console.log(`📦 Recibidos ${participantes.length} participantes para procesar`);
+
+    // Crear directorio si no existe
+    if (!fs.existsSync('qr-codes')) {
+        fs.mkdirSync('qr-codes', { recursive: true });
+    }
+
+    const resultados = {
+        exitosos: [],
+        fallidos: [],
+        total: participantes.length,
+        procesados: 0
+    };
+
+    // Procesar cada participante
+    for (let i = 0; i < participantes.length; i++) {
+        const participante = participantes[i];
+        const { numero, nombre, categoria } = participante;
+
+        try {
+            // Validaciones
+            if (!numero || !nombre || !categoria) {
+                throw new Error('Campos requeridos faltantes');
+            }
+
+            const numeroInt = parseInt(numero);
+            if (isNaN(numeroInt) || numeroInt <= 0) {
+                throw new Error('Número inválido');
+            }
+
+            // Verificar si ya existe
+            const existente = await Participante.findOne({ numero: numeroInt });
+            if (existente) {
+                throw new Error(`Número ${numeroInt} ya registrado`);
+            }
+
+            // Crear participante
+            const nuevo = new Participante({ 
+                numero: numeroInt, 
+                nombre: nombre.trim(), 
+                categoria 
+            });
+            
+            await nuevo.save();
+
+            // Generar QR
+            const id = nuevo._id.toString();
+            const nombreArchivo = `${numeroInt}_${nombre.replace(/[^a-zA-Z0-9áéíóúÁÉÍÓÚñÑ ]/g, '_')}.png`;
+            const rutaCompleta = path.join('qr-codes', nombreArchivo);
+            
+            const datosQR = JSON.stringify({ 
+                id, 
+                numero: numeroInt,
+                nombre, 
+                categoria,
+                timestamp: new Date().toISOString()
+            });
+            
+            const qr_png = qr.image(datosQR, { 
+                type: 'png',
+                size: 10,
+                margin: 2
+            });
+            
+            qr_png.pipe(fs.createWriteStream(rutaCompleta));
+
+            // Actualizar con info del QR
+            nuevo.qrGenerado = true;
+            nuevo.archivoQR = rutaCompleta;
+            await nuevo.save();
+
+            resultados.exitosos.push({
+                numero: numeroInt,
+                nombre,
+                categoria,
+                id,
+                qrUrl: `/${rutaCompleta}`
+            });
+
+            console.log(`✅ Participante ${i + 1}/${participantes.length} registrado: ${nombre}`);
+
+        } catch (error) {
+            console.error(`❌ Error con participante ${i + 1}:`, error.message);
+            
+            resultados.fallidos.push({
+                numero: participante.numero,
+                nombre: participante.nombre,
+                categoria: participante.categoria,
+                error: error.message,
+                posicion: i + 1
+            });
+        }
+
+        resultados.procesados++;
+    }
+
+    console.log('📊 Resumen del procesamiento:', {
+        total: resultados.total,
+        exitosos: resultados.exitosos.length,
+        fallidos: resultados.fallidos.length
+    });
+
+    res.json({
+        success: true,
+        mensaje: `Procesamiento completado: ${resultados.exitosos.length} exitosos, ${resultados.fallidos.length} fallidos`,
+        resultados
+    });
 });
 
 // Función auxiliar: Calcular estadísticas de completados

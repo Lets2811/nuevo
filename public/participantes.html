@@ -1,0 +1,1088 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lista de Participantes</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <style>
+        /* ===== VARIABLES CSS ===== */
+        :root {
+            --fondo-principal: #000000;
+            --fondo-tarjetas: #1C1C1C;
+            --texto-principal: #FFFFFF;
+            --verde-neon: #00FF3C;
+            --azul-secundario: #2196F3;
+            --dorado-especial: #FFD700;
+            --rojo-error: #ff4444;
+            --gris-borders: #333333;
+            --gris-hover: #444444;
+            --gris-texto-secundario: #888888;
+            
+            --container-max-width: 800px;
+            --container-padding: 20px;
+            --border-radius-base: 10px;
+            --border-radius-large: 15px;
+            --border-radius-pill: 25px;
+            --spacing-xs: 5px;
+            --spacing-sm: 10px;
+            --spacing-md: 15px;
+            --spacing-lg: 20px;
+            --spacing-xl: 30px;
+            --spacing-xxl: 40px;
+            
+            --shadow-light: 0 2px 5px rgba(0, 0, 0, 0.1);
+            --shadow-medium: 0 4px 12px rgba(0, 0, 0, 0.3);
+            --shadow-heavy: 0 8px 25px rgba(0, 0, 0, 0.5);
+            --shadow-neon: 0 0 20px rgba(0, 255, 60, 0.3);
+            
+            --transition-fast: 0.2s ease;
+            --transition-normal: 0.3s ease;
+            --transition-slow: 0.5s ease;
+        }
+
+        /* ===== RESET Y BASE ===== */
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--fondo-principal);
+            color: var(--texto-principal);
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+
+        /* ===== NAVEGACIÓN SUPERIOR ===== */
+        .top-navigation {
+            background-color: var(--fondo-tarjetas);
+            padding: var(--spacing-md) 0;
+            border-bottom: 2px solid var(--verde-neon);
+            margin-bottom: var(--spacing-xl);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .nav-links {
+            max-width: var(--container-max-width);
+            margin: 0 auto;
+            display: flex;
+            justify-content: center;
+            gap: var(--spacing-md);
+            flex-wrap: wrap;
+            padding: 0 var(--spacing-lg);
+        }
+
+        .nav-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: var(--spacing-sm) var(--spacing-md);
+            background-color: var(--gris-borders);
+            color: var(--texto-principal);
+            text-decoration: none;
+            border-radius: var(--border-radius-pill);
+            font-weight: bold;
+            font-size: 14px;
+            transition: all var(--transition-normal);
+            border: 1px solid #555555;
+            white-space: nowrap;
+        }
+
+        .nav-btn:hover {
+            background-color: var(--verde-neon);
+            color: var(--fondo-principal);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-neon);
+        }
+
+        .nav-btn.gallery:hover {
+            background-color: var(--dorado-especial);
+            color: var(--fondo-principal);
+        }
+
+        .nav-btn.exit:hover {
+            background-color: #ff5722;
+            color: var(--texto-principal);
+        }
+
+        .nav-btn.arrival:hover {
+            background-color: var(--azul-secundario);
+            color: var(--texto-principal);
+        }
+
+        /* ===== CONTENEDOR PRINCIPAL ===== */
+        .container {
+            max-width: var(--container-max-width);
+            margin: 0 auto;
+            padding: var(--container-padding);
+        }
+
+        /* ===== HEADER ===== */
+        .page-header {
+            text-align: center;
+            margin-bottom: var(--spacing-xxl);
+        }
+
+        .page-header h1 {
+            margin-bottom: var(--spacing-sm);
+            color: var(--verde-neon);
+            font-size: 2.2em;
+            font-weight: bold;
+        }
+
+        .subtitle {
+            color: var(--gris-texto-secundario);
+            font-size: 16px;
+            margin: 0;
+        }
+
+        /* ===== BOTONES ===== */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 12px 20px;
+            border: none;
+            border-radius: var(--border-radius-pill);
+            font-weight: bold;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all var(--transition-normal);
+            text-decoration: none;
+            font-family: inherit;
+        }
+
+        .btn-primary {
+            background-color: var(--verde-neon);
+            color: var(--fondo-principal);
+            box-shadow: 0 4px 15px rgba(0, 255, 60, 0.3);
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            background-color: #00cc33;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 255, 60, 0.4);
+        }
+
+        .btn-secondary {
+            background-color: var(--azul-secundario);
+            color: var(--texto-principal);
+        }
+
+        .btn-secondary:hover:not(:disabled) {
+            background-color: #1976d2;
+            transform: translateY(-2px);
+        }
+
+        .btn-special {
+            background-color: var(--dorado-especial);
+            color: var(--fondo-principal);
+        }
+
+        .btn-special:hover:not(:disabled) {
+            background-color: #e6c200;
+            transform: translateY(-2px);
+        }
+
+        /* ===== GRID DE ACCIONES RÁPIDAS ===== */
+        .quick-actions {
+            margin-top: var(--spacing-xxl);
+            padding-top: var(--spacing-xl);
+            border-top: 1px solid var(--gris-borders);
+        }
+
+        .quick-actions h3 {
+            text-align: center;
+            color: var(--verde-neon);
+            margin-bottom: var(--spacing-lg);
+            font-size: 1.3em;
+        }
+
+        .actions-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: var(--spacing-lg);
+        }
+
+        .action-card {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-md);
+            padding: var(--spacing-lg);
+            background-color: var(--fondo-tarjetas);
+            border: 1px solid var(--gris-borders);
+            border-radius: var(--border-radius-base);
+            text-decoration: none;
+            color: inherit;
+            transition: all var(--transition-normal);
+        }
+
+        .action-card:hover {
+            transform: translateY(-3px);
+            box-shadow: var(--shadow-neon);
+            border-color: var(--verde-neon);
+        }
+
+        .action-icon {
+            font-size: 24px;
+            width: 50px;
+            height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            flex-shrink: 0;
+            font-weight: bold;
+        }
+
+        .action-card:nth-child(1) .action-icon {
+            background-color: var(--verde-neon);
+            color: var(--fondo-principal);
+        }
+
+        .action-card:nth-child(2) .action-icon {
+            background-color: var(--dorado-especial);
+            color: var(--fondo-principal);
+        }
+
+        .action-card:nth-child(3) .action-icon {
+            background-color: var(--azul-secundario);
+            color: var(--texto-principal);
+        }
+
+        .action-content h4 {
+            margin: 0 0 5px 0;
+            color: var(--verde-neon);
+            font-size: 16px;
+        }
+
+        .action-content p {
+            margin: 0;
+            color: #cccccc;
+            font-size: 14px;
+            line-height: 1.4;
+        }
+
+        /* ===== FOOTER ===== */
+        .page-footer {
+            margin-top: var(--spacing-xxl);
+            padding: var(--spacing-lg);
+            text-align: center;
+            background-color: var(--fondo-tarjetas);
+            border-radius: var(--border-radius-base);
+            border: 1px solid var(--gris-borders);
+        }
+
+        .page-footer p {
+            margin: 0;
+            color: var(--gris-texto-secundario);
+            font-size: 14px;
+        }
+
+        .page-footer strong {
+            color: var(--verde-neon);
+        }
+
+        /* ===== ESTILOS ESPECÍFICOS DE PARTICIPANTES ===== */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: var(--spacing-lg);
+            margin-bottom: var(--spacing-xl);
+        }
+        
+        .stat-card {
+            background: var(--fondo-tarjetas);
+            padding: var(--spacing-lg);
+            border-radius: var(--border-radius-base);
+            text-align: center;
+            border: 2px solid var(--dorado-especial);
+            transition: all var(--transition-normal);
+            box-shadow: var(--shadow-light);
+        }
+        
+        .stat-card:hover {
+            transform: translateY(-3px);
+            box-shadow: var(--shadow-medium);
+        }
+        
+        .stat-number {
+            font-size: 2em;
+            font-weight: bold;
+            margin-bottom: 5px;
+            color: var(--dorado-especial);
+        }
+        
+        .stat-label {
+            color: var(--texto-principal);
+            font-size: 0.9rem;
+            font-weight: bold;
+        }
+        
+        .controls {
+            text-align: center;
+            margin-bottom: var(--spacing-xl);
+            display: flex;
+            gap: var(--spacing-md);
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        
+        .success-message {
+            background: var(--verde-neon);
+            color: var(--fondo-principal);
+            padding: var(--spacing-md);
+            border-radius: var(--border-radius-base);
+            margin: var(--spacing-lg) 0;
+            display: none;
+            font-weight: bold;
+            text-align: center;
+            animation: slideInUp 0.5s ease;
+        }
+        
+        .preview {
+            background: var(--fondo-tarjetas);
+            border-radius: var(--border-radius-base);
+            padding: var(--spacing-lg);
+            border: 1px solid var(--gris-borders);
+            box-shadow: var(--shadow-light);
+        }
+        
+        .preview h3 {
+            color: var(--verde-neon);
+            margin: 0 0 var(--spacing-md) 0;
+        }
+        
+        .table-container {
+            max-height: 400px;
+            overflow-y: auto;
+            border-radius: var(--border-radius-base);
+            border: 1px solid var(--gris-borders);
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: var(--fondo-principal);
+        }
+        
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid var(--gris-borders);
+            color: var(--texto-principal);
+        }
+        
+        th {
+            background: var(--verde-neon);
+            color: var(--fondo-principal);
+            font-weight: bold;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+        
+        tr:nth-child(even) {
+            background-color: var(--fondo-tarjetas);
+        }
+        
+        tr:hover {
+            background-color: rgba(0, 255, 60, 0.1);
+        }
+        
+        .category {
+            font-weight: bold;
+            color: var(--dorado-especial);
+        }
+
+        /* Mejorar la barra de scroll */
+        .table-container::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .table-container::-webkit-scrollbar-track {
+            background: var(--gris-borders);
+            border-radius: 4px;
+        }
+
+        .table-container::-webkit-scrollbar-thumb {
+            background: var(--verde-neon);
+            border-radius: 4px;
+        }
+
+        .table-container::-webkit-scrollbar-thumb:hover {
+            background: #00cc33;
+        }
+
+        /* ===== ESTILOS DE BÚSQUEDA Y FILTROS ===== */
+        .search-filters {
+            display: flex;
+            gap: var(--spacing-md);
+            margin-bottom: var(--spacing-md);
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .search-box {
+            flex: 1;
+            min-width: 200px;
+        }
+
+        .filter-box {
+            flex: 0 0 auto;
+            min-width: 200px;
+        }
+
+        .search-input, .filter-select {
+            width: 100%;
+            padding: 12px 16px;
+            background-color: var(--fondo-principal);
+            border: 2px solid var(--gris-borders);
+            border-radius: var(--border-radius-pill);
+            color: var(--texto-principal);
+            font-size: 14px;
+            font-family: inherit;
+            transition: all var(--transition-normal);
+        }
+
+        .search-input:focus, .filter-select:focus {
+            outline: none;
+            border-color: var(--verde-neon);
+            box-shadow: 0 0 0 3px rgba(0, 255, 60, 0.1);
+        }
+
+        .search-input::placeholder {
+            color: var(--gris-texto-secundario);
+        }
+
+        .filter-select {
+            cursor: pointer;
+        }
+
+        .filter-select option {
+            background-color: var(--fondo-principal);
+            color: var(--texto-principal);
+        }
+
+        .clear-btn {
+            flex: 0 0 auto;
+            white-space: nowrap;
+        }
+
+        .results-counter {
+            background-color: var(--fondo-principal);
+            padding: var(--spacing-sm) var(--spacing-md);
+            border-radius: var(--border-radius-base);
+            border: 1px solid var(--gris-borders);
+            margin-bottom: var(--spacing-md);
+            text-align: center;
+            font-size: 14px;
+            color: var(--gris-texto-secundario);
+        }
+
+        .results-counter span {
+            font-weight: bold;
+            color: var(--verde-neon);
+        }
+
+        /* ===== ANIMACIONES ===== */
+        @keyframes slideInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* ===== RESPONSIVE DESIGN ===== */
+        @media (max-width: 768px) {
+            .container {
+                padding: var(--spacing-md);
+            }
+            
+            .nav-links {
+                flex-direction: column;
+                align-items: center;
+                gap: var(--spacing-sm);
+            }
+            
+            .nav-btn {
+                width: 100%;
+                max-width: 200px;
+                justify-content: center;
+            }
+            
+            .page-header h1 {
+                font-size: 1.8em;
+            }
+            
+            .actions-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .action-card {
+                padding: var(--spacing-md);
+            }
+            
+            .action-icon {
+                width: 40px;
+                height: 40px;
+                font-size: 20px;
+            }
+            
+            .controls {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .controls .btn {
+                width: 100%;
+                max-width: 250px;
+            }
+            
+            .stats-grid {
+                grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            }
+            
+            .stat-number {
+                font-size: 1.5em;
+            }
+            
+            th, td {
+                padding: 8px;
+                font-size: 14px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            :root {
+                --container-padding: 10px;
+                --spacing-xl: 20px;
+                --spacing-xxl: 30px;
+            }
+            
+            .top-navigation {
+                padding: var(--spacing-sm) 0;
+                margin-bottom: var(--spacing-lg);
+            }
+            
+            .nav-links {
+                padding: 0 var(--spacing-sm);
+            }
+            
+            .page-header h1 {
+                font-size: 1.6em;
+            }
+            
+            .subtitle {
+                font-size: 14px;
+            }
+            
+            .preview {
+                padding: var(--spacing-md);
+            }
+            
+            .stat-card {
+                padding: var(--spacing-md);
+            }
+            
+            .search-filters {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .search-box, .filter-box {
+                min-width: auto;
+            }
+        }
+
+        /* ===== UTILIDADES ===== */
+        .hidden {
+            display: none !important;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navegación estándar -->
+    <nav class="top-navigation">
+        <div class="nav-links">
+            <a href="/" class="nav-btn home">🏠 Home</a>
+            <a href="/galeria" class="nav-btn gallery">🖼️ Galería QR</a>
+            <a href="/salida" class="nav-btn exit">🏃‍♂️ Registrar Salida</a>
+            <a href="/llegada" class="nav-btn arrival">🏁 Registrar Llegada</a>
+            <a href="/tiempos" class="nav-btn arrival">⏰ Tiempos</a>
+            <a href="/participantes" class="nav-btn">👥 Participantes</a>
+        </div>          
+    </nav>
+
+    <!-- Contenedor estándar -->
+    <div class="container">
+        <!-- Header estándar -->
+        <header class="page-header">
+            <h1>📊 Lista de Participantes</h1>
+            <p class="subtitle">Gestiona y descarga la información de todos los participantes registrados</p>
+        </header>
+
+        <!-- Estadísticas -->
+        <section class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-number" id="totalParticipants">141</div>
+                <div class="stat-label">Total Participantes</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="totalMen">79</div>
+                <div class="stat-label">Hombres</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="totalWomen">62</div>
+                <div class="stat-label">Mujeres</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">6</div>
+                <div class="stat-label">Categorías</div>
+            </div>
+        </section>
+
+        <!-- Controles de descarga -->
+        <section class="controls">
+            <button onclick="downloadExcel()" class="btn btn-special">
+                📥 Descargar Excel
+            </button>
+            <button onclick="downloadCSV()" class="btn btn-secondary">
+                📄 Descargar CSV
+            </button>
+        </section>
+        
+        <!-- Mensaje de éxito -->
+        <div id="successMessage" class="success-message">
+            ✅ Archivo descargado exitosamente!
+        </div>
+        
+        <!-- Vista previa de datos -->
+        <section class="preview">
+            <h3>📋 Vista previa de participantes:</h3>
+            
+            <!-- Controles de búsqueda y filtros -->
+            <div class="search-filters">
+                <div class="search-box">
+                    <input type="text" id="searchInput" placeholder="🔍 Buscar por nombre..." class="search-input">
+                </div>
+                <div class="filter-box">
+                    <select id="categoryFilter" class="filter-select">
+                        <option value="">📂 Todas las categorías</option>
+                        <option value="Principiante Masculino">Principiante Masculino</option>
+                        <option value="Intermedio Masculino">Intermedio Masculino</option>
+                        <option value="Avanzado Masculino">Avanzado Masculino</option>
+                        <option value="Principiante Femenino">Principiante Femenino</option>
+                        <option value="Intermedio Femenino">Intermedio Femenino</option>
+                        <option value="Avanzado Femenino">Avanzado Femenino</option>
+                    </select>
+                </div>
+                <button onclick="clearFilters()" class="btn btn-secondary clear-btn">
+                    🗑️ Limpiar
+                </button>
+            </div>
+            
+            <!-- Contador de resultados -->
+            <div class="results-counter">
+                <span id="resultsCount">Mostrando 141 de 141 participantes</span>
+            </div>
+            
+            <div class="table-container">
+                <table id="participantsTable">
+                    <thead>
+                        <tr>
+                            <th>Número</th>
+                            <th>Categoría</th>
+                            <th>Nombre</th>
+                            <th>Talla</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tableBody">
+                        <!-- Los datos se cargarán aquí -->
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- Acciones rápidas -->
+        <div class="quick-actions">
+            <h3>🚀 Acciones Rápidas</h3>
+            <div class="actions-grid">
+                <a href="/" class="action-card">
+                    <div class="action-icon">✍️</div>
+                    <div class="action-content">
+                        <h4>Registrar Participante</h4>
+                        <p>Agregar nuevo participante al evento</p>
+                    </div>
+                </a>
+                
+                <a href="/galeria" class="action-card">
+                    <div class="action-icon">🖼️</div>
+                    <div class="action-content">
+                        <h4>Ver Galería QR</h4>
+                        <p>Explorar códigos QR generados</p>
+                    </div>
+                </a>
+                
+                <a href="/tiempos" class="action-card">
+                    <div class="action-icon">⏱️</div>
+                    <div class="action-content">
+                        <h4>Ver Tiempos</h4>
+                        <p>Resultados y estadísticas del evento</p>
+                    </div>
+                </a>
+            </div>
+        </div>
+
+        <!-- Footer estándar -->
+        <footer class="page-footer">
+            <p>💡 <strong>Tip:</strong> Los archivos descargados incluyen todos los participantes organizados por categoría</p>
+        </footer>
+    </div>
+
+    <script>
+        // Datos de los participantes organizados por categoría
+        const participantes = [
+            // Principiante Masculino (001-044)
+            {numero: 1, categoria: "Principiante Masculino", nombre: "Yeison Felipe Ortiz Agredo", talla: "L"},
+            {numero: 2, categoria: "Principiante Masculino", nombre: "Ary Jose Ordóñez", talla: "L"},
+            {numero: 3, categoria: "Principiante Masculino", nombre: "Wilson Ortega", talla: "L"},
+            {numero: 4, categoria: "Principiante Masculino", nombre: "Brayan Devia", talla: "M"},
+            {numero: 5, categoria: "Principiante Masculino", nombre: "Maicol Muñoz", talla: "L"},
+            {numero: 6, categoria: "Principiante Masculino", nombre: "David Prado", talla: "M"},
+            {numero: 7, categoria: "Principiante Masculino", nombre: "Daniel Osorio", talla: "L"},
+            {numero: 8, categoria: "Principiante Masculino", nombre: "Kevin Daniel Ramos", talla: "L"},
+            {numero: 9, categoria: "Principiante Masculino", nombre: "Fabián Martínez", talla: "L"},
+            {numero: 10, categoria: "Principiante Masculino", nombre: "Angel Pame", talla: "L"},
+            {numero: 11, categoria: "Principiante Masculino", nombre: "Pedro Alegria", talla: "M"},
+            {numero: 12, categoria: "Principiante Masculino", nombre: "Juan José Zúñiga", talla: "M"},
+            {numero: 13, categoria: "Principiante Masculino", nombre: "Kevin Adrián Moreno", talla: "L"},
+            {numero: 14, categoria: "Principiante Masculino", nombre: "Christian Camilo Rivera", talla: "L"},
+            {numero: 15, categoria: "Principiante Masculino", nombre: "Andrés Felipe Ramírez", talla: "L"},
+            {numero: 16, categoria: "Principiante Masculino", nombre: "Carlos Enrique", talla: "XL"},
+            {numero: 17, categoria: "Principiante Masculino", nombre: "Jhon Michael Lemos", talla: "M"},
+            {numero: 18, categoria: "Principiante Masculino", nombre: "James Cadena", talla: "L"},
+            {numero: 19, categoria: "Principiante Masculino", nombre: "Julián Ortega", talla: "M"},
+            {numero: 20, categoria: "Principiante Masculino", nombre: "Camilo Chávez", talla: "M"},
+            {numero: 21, categoria: "Principiante Masculino", nombre: "Juan Guillermo Solano", talla: "M"},
+            {numero: 22, categoria: "Principiante Masculino", nombre: "Daniel Felipe Bedoya", talla: "M"},
+            {numero: 23, categoria: "Principiante Masculino", nombre: "Andrés Molina", talla: "XL"},
+            {numero: 24, categoria: "Principiante Masculino", nombre: "Esteban Muñoz", talla: "L"},
+            {numero: 25, categoria: "Principiante Masculino", nombre: "Andrés Pomeo", talla: "XL"},
+            {numero: 26, categoria: "Principiante Masculino", nombre: "Danilo Chamorro", talla: "M"},
+            {numero: 27, categoria: "Principiante Masculino", nombre: "Angelo Camilo", talla: "M"},
+            {numero: 28, categoria: "Principiante Masculino", nombre: "Fernando Pérez", talla: "M"},
+            {numero: 29, categoria: "Principiante Masculino", nombre: "Angel Benavides", talla: "S"},
+            {numero: 30, categoria: "Principiante Masculino", nombre: "Fernando Pérez", talla: "M"},
+            {numero: 31, categoria: "Principiante Masculino", nombre: "Sebastián Minota", talla: "M"},
+            {numero: 32, categoria: "Principiante Masculino", nombre: "Ismael Sandoval", talla: "L"},
+            {numero: 33, categoria: "Principiante Masculino", nombre: "Peter Mena", talla: "XL"},
+            {numero: 34, categoria: "Principiante Masculino", nombre: "Juan Pablo", talla: "L"},
+            {numero: 35, categoria: "Principiante Masculino", nombre: "Jhan Carlos Sánchez", talla: "L"},
+            {numero: 36, categoria: "Principiante Masculino", nombre: "Nicolás Santacruz", talla: "M"},
+            {numero: 37, categoria: "Principiante Masculino", nombre: "Jhonatan Meneses", talla: "XL"},
+            {numero: 38, categoria: "Principiante Masculino", nombre: "Juan Meneses", talla: "L"},
+            {numero: 39, categoria: "Principiante Masculino", nombre: "Jhonatan Paniagua", talla: "M"},
+            {numero: 40, categoria: "Principiante Masculino", nombre: "Jesús López", talla: "M"},
+            {numero: 41, categoria: "Principiante Masculino", nombre: "Ronaldo Bolaños", talla: "M"},
+            {numero: 42, categoria: "Principiante Masculino", nombre: "Rosember Angucho", talla: "XS"},
+            {numero: 43, categoria: "Principiante Masculino", nombre: "Duvan Felipe Armero", talla: "M"},
+            {numero: 44, categoria: "Principiante Masculino", nombre: "Cristian Galagarra", talla: "M"},
+            
+            // Intermedio Masculino (045-064)
+            {numero: 45, categoria: "Intermedio Masculino", nombre: "Junior López", talla: "S"},
+            {numero: 46, categoria: "Intermedio Masculino", nombre: "Johan Betancourt", talla: "M"},
+            {numero: 47, categoria: "Intermedio Masculino", nombre: "Emerson Sánchez", talla: "L"},
+            {numero: 48, categoria: "Intermedio Masculino", nombre: "Santiago Quintero", talla: "M"},
+            {numero: 49, categoria: "Intermedio Masculino", nombre: "Óscar David Enrique", talla: "M"},
+            {numero: 50, categoria: "Intermedio Masculino", nombre: "Daniel Felipe Parra", talla: "M"},
+            {numero: 51, categoria: "Intermedio Masculino", nombre: "Luis Miguel Aguirre", talla: "L"},
+            {numero: 52, categoria: "Intermedio Masculino", nombre: "Edwin Gironza", talla: "L"},
+            {numero: 53, categoria: "Intermedio Masculino", nombre: "Antonio Cuasquer", talla: "L"},
+            {numero: 54, categoria: "Intermedio Masculino", nombre: "Duvan Ramos", talla: "L"},
+            {numero: 55, categoria: "Intermedio Masculino", nombre: "Yojan Pillimue", talla: "M"},
+            {numero: 56, categoria: "Intermedio Masculino", nombre: "Diego Casanova", talla: "M"},
+            {numero: 57, categoria: "Intermedio Masculino", nombre: "Daniel Samboni", talla: "XL"},
+            {numero: 58, categoria: "Intermedio Masculino", nombre: "Walter Iván Guamanga", talla: "XL"},
+            {numero: 59, categoria: "Intermedio Masculino", nombre: "Alex Troyano", talla: "M"},
+            {numero: 60, categoria: "Intermedio Masculino", nombre: "Julián David Pacue", talla: "L"},
+            {numero: 61, categoria: "Intermedio Masculino", nombre: "David Ulabarry", talla: "L"},
+            {numero: 62, categoria: "Intermedio Masculino", nombre: "Arnol Sanchez", talla: "M"},
+            {numero: 63, categoria: "Intermedio Masculino", nombre: "Juan Felipe Burbano", talla: "M"},
+            {numero: 64, categoria: "Intermedio Masculino", nombre: "Coach Duvan", talla: "L"},
+            
+            // Avanzado Masculino (065-079)
+            {numero: 65, categoria: "Avanzado Masculino", nombre: "Cristhian Betancourth", talla: "L"},
+            {numero: 66, categoria: "Avanzado Masculino", nombre: "John Edison Solarte", talla: "M"},
+            {numero: 67, categoria: "Avanzado Masculino", nombre: "Cristhian Valencia", talla: "XL"},
+            {numero: 68, categoria: "Avanzado Masculino", nombre: "Jhonatan Ordóñez", talla: "L"},
+            {numero: 69, categoria: "Avanzado Masculino", nombre: "Yeiko", talla: "L"},
+            {numero: 70, categoria: "Avanzado Masculino", nombre: "Brayan Stiven Muñoz", talla: "M"},
+            {numero: 71, categoria: "Avanzado Masculino", nombre: "Fretman Vargas", talla: "M"},
+            {numero: 72, categoria: "Avanzado Masculino", nombre: "Jonathan Hernández", talla: "L"},
+            {numero: 73, categoria: "Avanzado Masculino", nombre: "Daniel San", talla: "L"},
+            {numero: 74, categoria: "Avanzado Masculino", nombre: "Cristian Vinasco", talla: "M"},
+            {numero: 75, categoria: "Avanzado Masculino", nombre: "Daniel Gómez", talla: "M"},
+            {numero: 76, categoria: "Avanzado Masculino", nombre: "Jhojan Santacruz", talla: "L"},
+            {numero: 77, categoria: "Avanzado Masculino", nombre: "Giovanni Bolaños", talla: "L"},
+            {numero: 78, categoria: "Avanzado Masculino", nombre: "Andrés Chagüendo", talla: "XL"},
+            {numero: 79, categoria: "Avanzado Masculino", nombre: "James Campo", talla: "L"},
+            
+            // Principiante Femenino (080-130)
+            {numero: 80, categoria: "Principiante Femenino", nombre: "Lenny Paola Rojas Bolaños", talla: "S"},
+            {numero: 81, categoria: "Principiante Femenino", nombre: "Ana Lucia Bravo Lopez", talla: "XS"},
+            {numero: 82, categoria: "Principiante Femenino", nombre: "María Alejandra Vivas", talla: "M"},
+            {numero: 83, categoria: "Principiante Femenino", nombre: "Liliana Ruiz", talla: "M"},
+            {numero: 84, categoria: "Principiante Femenino", nombre: "Valentina Mendez Agredo", talla: "M"},
+            {numero: 85, categoria: "Principiante Femenino", nombre: "Anny Yazmin Buitron", talla: "M"},
+            {numero: 86, categoria: "Principiante Femenino", nombre: "Angela Maria Possos Hernandez", talla: "M"},
+            {numero: 87, categoria: "Principiante Femenino", nombre: "Carmen Cuetia", talla: "M"},
+            {numero: 88, categoria: "Principiante Femenino", nombre: "Vanesa Anaya", talla: "M"},
+            {numero: 89, categoria: "Principiante Femenino", nombre: "Keren Yireth Sánchez", talla: "M"},
+            {numero: 90, categoria: "Principiante Femenino", nombre: "Yulieth Valentina López", talla: "S"},
+            {numero: 91, categoria: "Principiante Femenino", nombre: "Angelica Andrea Realpe", talla: "M"},
+            {numero: 92, categoria: "Principiante Femenino", nombre: "Giselle Palomino", talla: "M"},
+            {numero: 93, categoria: "Principiante Femenino", nombre: "Denyi Lorena López", talla: "M"},
+            {numero: 94, categoria: "Principiante Femenino", nombre: "Isa Roberto", talla: "XS"},
+            {numero: 95, categoria: "Principiante Femenino", nombre: "Nilce Hernández", talla: "L"},
+            {numero: 96, categoria: "Principiante Femenino", nombre: "Patricia Hoyos", talla: "S"},
+            {numero: 97, categoria: "Principiante Femenino", nombre: "Diana Hoyos", talla: "S"},
+            {numero: 98, categoria: "Principiante Femenino", nombre: "Maye Peña", talla: "S"},
+            {numero: 99, categoria: "Principiante Femenino", nombre: "Viviana Paredes", talla: "M"},
+            {numero: 100, categoria: "Principiante Femenino", nombre: "Meliza López", talla: "S"},
+            {numero: 101, categoria: "Principiante Femenino", nombre: "Ana Lucía Rodríguez", talla: "L"},
+            {numero: 102, categoria: "Principiante Femenino", nombre: "Karol Viviana Quiñones", talla: "L"},
+            {numero: 103, categoria: "Principiante Femenino", nombre: "Lisbet Joaqui", talla: "S"},
+            {numero: 104, categoria: "Principiante Femenino", nombre: "Lina Peña Marín", talla: "M"},
+            {numero: 105, categoria: "Principiante Femenino", nombre: "Lizeth Mellizo", talla: "M"},
+            {numero: 106, categoria: "Principiante Femenino", nombre: "María Isabel Correa", talla: "S"},
+            {numero: 107, categoria: "Principiante Femenino", nombre: "Fanny Gutiérrez", talla: "M"},
+            {numero: 108, categoria: "Principiante Femenino", nombre: "Angelica Ledesma", talla: "M"},
+            {numero: 109, categoria: "Principiante Femenino", nombre: "Alba Palmito", talla: "L"},
+            {numero: 110, categoria: "Principiante Femenino", nombre: "María José Fuertes", talla: "M"},
+            {numero: 111, categoria: "Principiante Femenino", nombre: "Alexandra Salamanca", talla: "L"},
+            {numero: 112, categoria: "Principiante Femenino", nombre: "Luisa Pedroza", talla: "M"},
+            {numero: 113, categoria: "Principiante Femenino", nombre: "Diana Samboni", talla: "S"},
+            {numero: 114, categoria: "Principiante Femenino", nombre: "Valentina Franco", talla: "S"},
+            {numero: 115, categoria: "Principiante Femenino", nombre: "María Yeni Pulido", talla: "M"},
+            {numero: 116, categoria: "Principiante Femenino", nombre: "Yuri Stefany Pacue", talla: "S"},
+            {numero: 117, categoria: "Principiante Femenino", nombre: "Evelin Velasco", talla: "S"},
+            {numero: 118, categoria: "Principiante Femenino", nombre: "Dayana Velasco", talla: "M"},
+            {numero: 119, categoria: "Principiante Femenino", nombre: "Claudia Girón", talla: "M"},
+            {numero: 120, categoria: "Principiante Femenino", nombre: "Daniela Hoyos Benítez", talla: "M"},
+            {numero: 121, categoria: "Principiante Femenino", nombre: "Yurani Chilito", talla: "M"},
+            {numero: 122, categoria: "Principiante Femenino", nombre: "Laura Sánchez", talla: "M"},
+            {numero: 123, categoria: "Principiante Femenino", nombre: "Daniela Chilito", talla: "M"},
+            {numero: 124, categoria: "Principiante Femenino", nombre: "Viviana Vejarano", talla: "S"},
+            {numero: 125, categoria: "Principiante Femenino", nombre: "Daniela Muñoz", talla: "S"},
+            {numero: 126, categoria: "Principiante Femenino", nombre: "Catalina Popo Salazar", talla: "XS"},
+            {numero: 127, categoria: "Principiante Femenino", nombre: "Ximena Rosero", talla: "S"},
+            {numero: 128, categoria: "Principiante Femenino", nombre: "Tatiana Cerón", talla: "L"},
+            {numero: 129, categoria: "Principiante Femenino", nombre: "Gina Navia", talla: "M"},
+            {numero: 130, categoria: "Principiante Femenino", nombre: "Juliana Martínez", talla: "S"},
+            
+            // Intermedio Femenino (131-139)
+            {numero: 131, categoria: "Intermedio Femenino", nombre: "Yerly Pino", talla: "M"},
+            {numero: 132, categoria: "Intermedio Femenino", nombre: "Sofía Rendón", talla: "S"},
+            {numero: 133, categoria: "Intermedio Femenino", nombre: "Melisa Trejos", talla: "M"},
+            {numero: 134, categoria: "Intermedio Femenino", nombre: "Yessenia Ruiz Pérez", talla: "M"},
+            {numero: 135, categoria: "Intermedio Femenino", nombre: "Lorena Troyano", talla: "S"},
+            {numero: 136, categoria: "Intermedio Femenino", nombre: "Sandra Muñoz", talla: "L"},
+            {numero: 137, categoria: "Intermedio Femenino", nombre: "Dayana Cando Díaz", talla: "S"},
+            {numero: 138, categoria: "Intermedio Femenino", nombre: "Lina Morales", talla: "M"},
+            {numero: 139, categoria: "Intermedio Femenino", nombre: "Gisell Tovar", talla: "M"},
+            
+            // Avanzado Femenino (140-141)
+            {numero: 140, categoria: "Avanzado Femenino", nombre: "Valentina Balcázar", talla: "S"},
+            {numero: 141, categoria: "Avanzado Femenino", nombre: "Karen Sarria", talla: "M"}
+        ];
+
+        // Variables globales para filtros
+        let filteredParticipants = [...participantes];
+        let currentSearchTerm = '';
+        let currentCategoryFilter = '';
+
+        // Llenar la tabla con los datos (modificada para usar datos filtrados)
+        function populateTable(dataToShow = participantes) {
+            const tbody = document.getElementById('tableBody');
+            tbody.innerHTML = '';
+            
+            dataToShow.forEach(participante => {
+                const row = tbody.insertRow();
+                row.innerHTML = `
+                    <td>${participante.numero.toString().padStart(3, '0')}</td>
+                    <td class="category">${participante.categoria}</td>
+                    <td>${participante.nombre}</td>
+                    <td>${participante.talla}</td>
+                `;
+            });
+
+            // Actualizar contador de resultados
+            updateResultsCounter(dataToShow.length);
+        }
+
+        // Actualizar contador de resultados
+        function updateResultsCounter(filteredCount) {
+            const counter = document.getElementById('resultsCount');
+            counter.textContent = `Mostrando ${filteredCount} de ${participantes.length} participantes`;
+        }
+
+        // Función de búsqueda por nombre
+        function searchByName(searchTerm) {
+            currentSearchTerm = searchTerm.toLowerCase();
+            applyFilters();
+        }
+
+        // Función de filtro por categoría
+        function filterByCategory(category) {
+            currentCategoryFilter = category;
+            applyFilters();
+        }
+
+        // Aplicar todos los filtros
+        function applyFilters() {
+            filteredParticipants = participantes.filter(participante => {
+                const matchesName = currentSearchTerm === '' || 
+                    participante.nombre.toLowerCase().includes(currentSearchTerm);
+                const matchesCategory = currentCategoryFilter === '' || 
+                    participante.categoria === currentCategoryFilter;
+                
+                return matchesName && matchesCategory;
+            });
+
+            populateTable(filteredParticipants);
+            updateFilteredStats();
+        }
+
+        // Actualizar estadísticas según los filtros
+        function updateFilteredStats() {
+            const totalFiltered = filteredParticipants.length;
+            const menFiltered = filteredParticipants.filter(p => 
+                p.categoria.includes('Masculino')).length;
+            const womenFiltered = filteredParticipants.filter(p => 
+                p.categoria.includes('Femenino')).length;
+
+            // Actualizar los números en las tarjetas de estadísticas
+            document.getElementById('totalParticipants').textContent = totalFiltered;
+            document.getElementById('totalMen').textContent = menFiltered;
+            document.getElementById('totalWomen').textContent = womenFiltered;
+        }
+
+        // Limpiar todos los filtros
+        function clearFilters() {
+            document.getElementById('searchInput').value = '';
+            document.getElementById('categoryFilter').value = '';
+            currentSearchTerm = '';
+            currentCategoryFilter = '';
+            filteredParticipants = [...participantes];
+            populateTable(participantes);
+            
+            // Restaurar estadísticas originales
+            document.getElementById('totalParticipants').textContent = '141';
+            document.getElementById('totalMen').textContent = '79';
+            document.getElementById('totalWomen').textContent = '62';
+        }
+
+        // Event listeners para los controles de filtro
+        function setupEventListeners() {
+            // Búsqueda en tiempo real
+            document.getElementById('searchInput').addEventListener('input', function(e) {
+                searchByName(e.target.value);
+            });
+
+            // Filtro por categoría
+            document.getElementById('categoryFilter').addEventListener('change', function(e) {
+                filterByCategory(e.target.value);
+            });
+        }
+
+        // Función para mostrar mensaje de éxito
+        function showSuccessMessage() {
+            const message = document.getElementById('successMessage');
+            message.style.display = 'block';
+            setTimeout(() => {
+                message.style.display = 'none';
+            }, 3000);
+        }
+
+        // Función para descargar Excel (modificada para usar datos filtrados)
+        function downloadExcel() {
+            const dataToExport = filteredParticipants.length < participantes.length ? 
+                filteredParticipants : participantes;
+                
+            const ws = XLSX.utils.json_to_sheet(dataToExport.map(p => ({
+                'Número': p.numero.toString().padStart(3, '0'),
+                'Categoría': p.categoria,
+                'Nombre': p.nombre,
+                'Talla': p.talla
+            })));
+
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, "Participantes");
+
+            // Configurar ancho de columnas
+            ws['!cols'] = [
+                {wch: 8},  // Número
+                {wch: 25}, // Categoría
+                {wch: 35}, // Nombre
+                {wch: 8}   // Talla
+            ];
+
+            const fileName = filteredParticipants.length < participantes.length ? 
+                "Lista_Participantes_Filtrada.xlsx" : "Lista_Participantes.xlsx";
+                
+            XLSX.writeFile(wb, fileName);
+            showSuccessMessage();
+        }
+
+        // Función para descargar CSV (modificada para usar datos filtrados)
+        function downloadCSV() {
+            const dataToExport = filteredParticipants.length < participantes.length ? 
+                filteredParticipants : participantes;
+                
+            const csvContent = [
+                ['Número', 'Categoría', 'Nombre', 'Talla'],
+                ...dataToExport.map(p => [
+                    p.numero.toString().padStart(3, '0'),
+                    p.categoria,
+                    p.nombre,
+                    p.talla
+                ])
+            ].map(row => row.map(field => `"${field}"`).join(',')).join('\n');
+
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            const url = URL.createObjectURL(blob);
+            
+            const fileName = filteredParticipants.length < participantes.length ? 
+                "Lista_Participantes_Filtrada.csv" : "Lista_Participantes.csv";
+            
+            link.setAttribute('href', url);
+            link.setAttribute('download', fileName);
+            link.style.visibility = 'hidden';
+            
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            
+            showSuccessMessage();
+        }
+
+        // Inicializar la tabla al cargar la página
+        window.onload = function() {
+            populateTable();
+            setupEventListeners();
+        };
+    </script>
+</body>
+</html>
