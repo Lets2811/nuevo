@@ -136,7 +136,8 @@ document.addEventListener('DOMContentLoaded', async () => {
             // Actualizar datos con animación
             document.getElementById('nombreParticipante').textContent = participante.nombre || 'No disponible';
             document.getElementById('categoriaParticipante').textContent = participante.categoria || 'No registrada';
-            
+            document.getElementById('numeroParticipante').textContent = participante.numero || 'No registrada';
+
             // Mostrar resultado con animación
             resultadoDiv.classList.remove('hidden');
             resultadoDiv.style.opacity = '0';

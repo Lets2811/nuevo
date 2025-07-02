@@ -100,6 +100,7 @@ app.post('/registrar', async (req, res) => {
             qrUrl: nuevo.qrUrl,
             id,
             nombre,
+            numero,
             categoria,
         };
 
@@ -157,7 +158,8 @@ app.get('/participante/:id', async (req, res) => {
                 id: participante._id.toString(),
                 nombre: participante.nombre,
                 categoria: participante.categoria,
-                horaRegistro: participante.horaRegistro
+                horaRegistro: participante.horaRegistro,
+                numero: participante.numero,
             });
         }
 

@@ -96,50 +96,50 @@ document.addEventListener('DOMContentLoaded', function() {
 
 function mostrarResultado(data) {
     const resultadoDiv = document.getElementById('resultado');
-    
+
     // Actualizar datos del participante
     document.getElementById('numeroParticipante').textContent = data.numero || 'No asignado';
     document.getElementById('nombreParticipante').textContent = data.nombre || 'No disponible';
     document.getElementById('categoriaParticipante').textContent = data.categoria || 'No especificada';
-    
+
     console.log('Mostrando en UI:', {
         numero: data.numero,
         nombre: data.nombre,
         categoria: data.categoria
     });
-    
+
     // Actualizar QR con animación
     const qrContainer = document.getElementById('qrContainer');
     qrContainer.innerHTML = `
         <div style="opacity: 0; transition: opacity 0.5s ease;">
             <h3 style="color: #00FF3C; margin-bottom: 15px;">📱 Tu Código QR</h3>
-            <img src="${data.qrUrl}" alt="QR Code" style="animation: slideInUp 0.6s ease;">
+            <img src="${data.qrUrl}" alt="QR Code" style="animation: slideInUp 0.6s ease; max-width: 200px;">
             <p style="color: #888888; font-size: 14px; margin-top: 10px;">
                 💡 Guarda este código para el día del evento
             </p>
         </div>
     `;
-    
+
     setTimeout(() => {
         qrContainer.firstElementChild.style.opacity = '1';
     }, 100);
-    
-    // Actualizar enlace de descarga
-    const descargarQR = document.getElementById('descargarQR');
-    descargarQR.href = data.qrUrl;
-    descargarQR.download = `QR_${data.numero}_${data.nombre.replace(/[^a-zA-Z0-9]/g, '_')}.png`;
-    
+
+    // Asignar evento para descargar usando la función personalizada
+    const btnDescargar = document.getElementById('descargarQR');
+    btnDescargar.onclick = () => descargarQR(data.qrUrl, data.nombre);
+
     // Mostrar resultado con animación
     resultadoDiv.classList.remove('hidden');
     resultadoDiv.style.opacity = '0';
     resultadoDiv.style.transform = 'translateY(20px)';
-    
+
     setTimeout(() => {
         resultadoDiv.style.transition = 'all 0.5s ease';
         resultadoDiv.style.opacity = '1';
         resultadoDiv.style.transform = 'translateY(0)';
     }, 50);
 }
+
 
 // Formulario individual
 document.getElementById('registroForm').addEventListener('submit', function(e) {
@@ -455,6 +455,29 @@ function mostrarVistaPrevia() {
     }
 
     mostrarNotificacion(`📊 ${totalValidos} registros listos para procesar`, 'success');
+}
+
+async function descargarQR(qrUrl, nombre, mostrarMensaje = true) {
+    try {
+        const response = await fetch(qrUrl);
+        if (!response.ok) throw new Error('Error al descargar el archivo');
+
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `QR_${nombre.replace(/[^a-zA-Z0-9]/g, '_')}.png`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        window.URL.revokeObjectURL(url);
+
+        if (mostrarMensaje) mostrarNotificacion(`✅ QR de ${nombre} descargado`, 'success');
+
+    } catch (error) {
+        console.error('Error al descargar:', error);
+        if (mostrarMensaje) mostrarNotificacion(`❌ Error al descargar QR de ${nombre}`, 'error');
+    }
 }
 
 // Procesar lote de participantes
