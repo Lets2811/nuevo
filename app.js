@@ -7,6 +7,7 @@ const connectDB = require('./utils/db');
 const Participante = require('./utils/pariticpantModel');
 const Salida = require('./utils/salidaModel');
 const Llegada = require('./utils/llegadaModelo');
+const cloudinary = require('./utils/cloudinary');
 
 const app = express();
 const PORT = 3000;
@@ -32,54 +33,65 @@ app.post('/registrar', async (req, res) => {
     console.log('📅 Timestamp:', new Date().toISOString());
     console.log('📦 Body recibido:', req.body);
     console.log('='.repeat(50));
-
+  
     const { nombre, categoria, numero } = req.body;
-
+  
     if (!nombre || !categoria || !numero) {
-        console.log('❌ Faltan campos requeridos:', { nombre, categoria, numero });
-        console.log('  - nombre:', nombre);
-        console.log('  - categoria:', categoria);
-        console.log('  - numero:', numero);
-        console.log('❌ Faltan campos requeridos');
-        return res.status(400).json({ error: 'Todos los campos son requeridos' });
+      console.log('❌ Faltan campos requeridos');
+      return res.status(400).json({ error: 'Todos los campos son requeridos' });
     }
-
-    if (!fs.existsSync('qr-codes')) {
-        fs.mkdirSync('qr-codes');
-        console.log('📁 Directorio qr-codes creado');
-    }
-
+  
     try {
-        const nuevo = new Participante({ nombre, categoria, numero });
-        await nuevo.save();
-
-        const id = nuevo._id.toString();
-        const filename = `qr-codes/${id}_${nombre.replace(/[^a-zA-Z0-9áéíóúÁÉÍÓÚñÑ ]/g, '_')}.png`;
-        
-        const datosQR = JSON.stringify({ id, nombre, categoria });
-        const qr_png = qr.image(datosQR, { type: 'png' });
-        qr_png.pipe(fs.createWriteStream(filename));
-
-        console.log('✅ Nuevo participante registrado:', nuevo);
-        console.log('📁 QR generado en:', filename);
-        
-        const response = {
-            success: true,
-            mensaje: 'Participante registrado',
-            qrUrl: filename,
-            id,
+      const datosQR = JSON.stringify({ nombre, categoria, numero });
+  
+      const safeFilename = `${Date.now()}_${nombre.replace(/[^a-zA-Z0-9áéíóúÁÉÍÓÚñÑ ]/g, '_')}`;
+      const tempPath = path.join('/tmp', `${safeFilename}.png`);
+  
+      const qr_png = qr.image(datosQR, { type: 'png' });
+      const writeStream = fs.createWriteStream(tempPath);
+      qr_png.pipe(writeStream);
+  
+      writeStream.on('finish', async () => {
+        try {
+          const result = await cloudinary.uploader.upload(tempPath, {
+            folder: 'qr_codes',
+            public_id: safeFilename,
+            use_filename: true,
+            overwrite: true,
+          });
+  
+          fs.unlinkSync(tempPath); // eliminar el archivo temporal
+  
+          const nuevo = new Participante({
             nombre,
             categoria,
-        };
-
-        console.log('📤 Respuesta enviada:', response);
-        res.json(response);
+            numero,
+            qrUrl: result.secure_url,
+          });
+  
+          await nuevo.save();
+  
+          const response = {
+            success: true,
+            mensaje: 'Participante registrado',
+            id: nuevo._id,
+            nombre: nuevo.nombre,
+            categoria: nuevo.categoria,
+            qrUrl: nuevo.qrUrl,
+          };
+  
+          console.log('✅ Participante guardado y QR subido a Cloudinary');
+          res.json(response);
+        } catch (uploadErr) {
+          console.error('💥 Error al subir QR a Cloudinary:', uploadErr);
+          res.status(500).json({ error: 'Error al subir QR' });
+        }
+      });
     } catch (error) {
-        console.error('💥 Error al generar QR:', error);
-        res.status(500).json({ error: 'Error al generar QR' });
+      console.error('💥 Error general en /registrar:', error);
+      res.status(500).json({ error: 'Error al registrar participante' });
     }
-});
-
+  });
 // ===== RUTAS DE PÁGINAS =====
 
 app.get('/escaneo', (req, res) => {
@@ -171,42 +183,34 @@ app.get('/participante/:id', async (req, res) => {
 
 app.get('/api/qr-codes', async (req, res) => {
     try {
-        const qrFiles = fs.existsSync('qr-codes') ? fs.readdirSync('qr-codes') : [];
-        const participantes = await Participante.find({}).sort({ horaRegistro: -1 });
+      const participantes = await Participante.find({}).sort({ horaRegistro: -1 });
         
-        const qrList = qrFiles.map(filename => {
-            const fileId = filename.split('_')[0];
-            const nombreArchivo = filename.split('_').slice(1).join('_').replace('.png', '').replace(/_/g, ' ');
-            const participanteDB = participantes.find(p => p._id.toString().includes(fileId) || 
-                                                      p.horaRegistro.getTime().toString() === fileId);
-            
-            return {
-                id: fileId,
-                filename: filename,
-                nombre: participanteDB ? participanteDB.nombre : nombreArchivo,
-                categoria: participanteDB ? participanteDB.categoria : 'No especificada',
-                fechaRegistro: participanteDB ? participanteDB.horaRegistro : new Date(),
-                qrPath: `qr-codes/${filename}`,
-                downloadUrl: `/qr-codes/${filename}`
-            };
-        });
-
-        qrList.sort((a, b) => new Date(b.fechaRegistro) - new Date(a.fechaRegistro));
-
-        res.json({
-            success: true,
-            total: qrList.length,
-            qrCodes: qrList
-        });
-
+      console.log(`📸 Obteniendo ${participantes.length} códigos QR de participantes`);
+      const qrList = participantes.map(p => ({
+        id: p._id.toString(),
+        nombre: p.nombre,
+        categoria: p.categoria,
+        fechaRegistro: p.horaRegistro,
+        qrUrl: p.qrUrl,
+        filename: p.qrUrl?.split('/').pop() || 'NA', // nombre del archivo desde Cloudinary
+        downloadUrl: p.qrUrl // puede usarse directamente para descargar
+      }));
+  
+      res.json({
+        success: true,
+        total: qrList.length,
+        qrCodes: qrList
+      });
+  
     } catch (error) {
-        console.error('Error al obtener códigos QR:', error);
-        res.status(500).json({ 
-            success: false, 
-            error: 'Error al cargar la galería de códigos QR' 
-        });
+      console.error('Error al obtener códigos QR:', error);
+      res.status(500).json({ 
+        success: false, 
+        error: 'Error al cargar la galería de códigos QR' 
+      });
     }
-});
+  });
+  
 
 app.get('/api/download/:filename', (req, res) => {
     const filename = req.params.filename;

@@ -1,10 +1,8 @@
 document.addEventListener('DOMContentLoaded', function() {
-    // Variables globales
     let todosLosQR = [];
     let qrFiltrados = [];
     let seleccionados = new Set();
 
-    // Elementos del DOM
     const galeriaGrid = document.getElementById('galeria-grid');
     const loadingDiv = document.getElementById('loading');
     const errorMessage = document.getElementById('error-message');
@@ -18,23 +16,19 @@ document.addEventListener('DOMContentLoaded', function() {
     const refreshBtn = document.getElementById('refresh-btn');
     const previewModal = document.getElementById('preview-modal');
 
-    // Inicializar
     cargarGaleria();
 
-    // Event listeners
     refreshBtn.addEventListener('click', cargarGaleria);
     searchInput.addEventListener('input', filtrarQR);
     categoriaFilter.addEventListener('change', filtrarQR);
     selectAllBtn.addEventListener('click', toggleSelectAll);
     downloadSelectedBtn.addEventListener('click', descargarSeleccionados);
 
-    // Modal events
     document.querySelector('.close-modal').addEventListener('click', cerrarModal);
     previewModal.addEventListener('click', function(e) {
         if (e.target === previewModal) cerrarModal();
     });
 
-    // Cargar galería desde la API
     async function cargarGaleria() {
         mostrarLoading(true);
         esconderError();
@@ -44,9 +38,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const response = await fetch('/api/qr-codes');
             const data = await response.json();
 
-            if (!response.ok) {
-                throw new Error(data.error || 'Error al cargar códigos QR');
-            }
+            if (!response.ok) throw new Error(data.error || 'Error al cargar códigos QR');
 
             todosLosQR = data.qrCodes || [];
             qrFiltrados = [...todosLosQR];
@@ -56,9 +48,7 @@ document.addEventListener('DOMContentLoaded', function() {
             actualizarContadores();
             renderizarGaleria();
 
-            if (todosLosQR.length === 0) {
-                mostrarNoResults();
-            }
+            if (todosLosQR.length === 0) mostrarNoResults();
 
         } catch (error) {
             console.error('Error al cargar galería:', error);
@@ -67,7 +57,6 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    // Renderizar la galería
     function renderizarGaleria() {
         if (qrFiltrados.length === 0) {
             galeriaGrid.innerHTML = '';
@@ -76,37 +65,30 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         esconderNoResults();
-        
         galeriaGrid.innerHTML = qrFiltrados.map(qr => crearTarjetaQR(qr)).join('');
-        
-        // Agregar event listeners a las tarjetas
         agregarEventListeners();
     }
 
-    // Crear HTML para una tarjeta QR
     function crearTarjetaQR(qr) {
         const fechaFormateada = formatearFecha(qr.fechaRegistro);
         const isSelected = seleccionados.has(qr.id);
-        
+
         return `
             <div class="qr-card ${isSelected ? 'selected' : ''}" data-id="${qr.id}">
                 <div class="card-header">
                     <input type="checkbox" class="select-checkbox" ${isSelected ? 'checked' : ''}>
                     <button class="card-menu">⋮</button>
                 </div>
-                
                 <div class="qr-image-container">
-                    <img src="${qr.qrPath}" alt="QR de ${qr.nombre}" class="qr-image" onclick="abrirPreview('${qr.id}')">
+                    <img src="${qr.qrUrl}" alt="QR de ${qr.nombre}" class="qr-image" onclick="abrirPreview('${qr.id}')">
                 </div>
-                
                 <div class="participant-info">
                     <h3>${escapeHtml(qr.nombre)}</h3>
                     <p><span class="categoria">${escapeHtml(qr.categoria)}</span></p>
                     <p class="fecha">📅 ${fechaFormateada}</p>
                 </div>
-                
                 <div class="card-actions">
-                    <button class="download-btn" onclick="descargarQR('${qr.filename}', '${escapeHtml(qr.nombre)}')">
+                    <button class="download-btn" onclick="descargarQRPorId('${qr.id}')">
                         ⬇ Descargar
                     </button>
                     <button class="preview-btn" onclick="abrirPreview('${qr.id}')">
@@ -117,14 +99,11 @@ document.addEventListener('DOMContentLoaded', function() {
         `;
     }
 
-    // Agregar event listeners a las tarjetas
     function agregarEventListeners() {
-        // Checkboxes
         document.querySelectorAll('.select-checkbox').forEach(checkbox => {
             checkbox.addEventListener('change', function() {
                 const tarjeta = this.closest('.qr-card');
                 const id = tarjeta.dataset.id;
-                
                 if (this.checked) {
                     seleccionados.add(id);
                     tarjeta.classList.add('selected');
@@ -132,13 +111,11 @@ document.addEventListener('DOMContentLoaded', function() {
                     seleccionados.delete(id);
                     tarjeta.classList.remove('selected');
                 }
-                
                 actualizarContadores();
             });
         });
     }
 
-    // Filtrar códigos QR
     function filtrarQR() {
         const textoBusqueda = searchInput.value.toLowerCase().trim();
         const categoriaSeleccionada = categoriaFilter.value;
@@ -147,10 +124,9 @@ document.addEventListener('DOMContentLoaded', function() {
             const coincideTexto = !textoBusqueda || 
                 qr.nombre.toLowerCase().includes(textoBusqueda) ||
                 qr.categoria.toLowerCase().includes(textoBusqueda);
-            
-            const coincideCategoria = !categoriaSeleccionada || 
-                qr.categoria === categoriaSeleccionada;
-            
+
+            const coincideCategoria = !categoriaSeleccionada || qr.categoria === categoriaSeleccionada;
+
             return coincideTexto && coincideCategoria;
         });
 
@@ -158,25 +134,21 @@ document.addEventListener('DOMContentLoaded', function() {
         actualizarContadores();
     }
 
-    // Toggle seleccionar todo
     function toggleSelectAll() {
         const todosSeleccionados = qrFiltrados.every(qr => seleccionados.has(qr.id));
-        
+
         if (todosSeleccionados) {
-            // Deseleccionar todos los filtrados
             qrFiltrados.forEach(qr => seleccionados.delete(qr.id));
             selectAllBtn.textContent = 'Seleccionar Todo';
         } else {
-            // Seleccionar todos los filtrados
             qrFiltrados.forEach(qr => seleccionados.add(qr.id));
             selectAllBtn.textContent = 'Deseleccionar Todo';
         }
-        
+
         renderizarGaleria();
         actualizarContadores();
     }
 
-    // Descargar códigos QR seleccionados
     async function descargarSeleccionados() {
         if (seleccionados.size === 0) return;
 
@@ -185,19 +157,12 @@ document.addEventListener('DOMContentLoaded', function() {
 
         try {
             for (const id of seleccionados) {
-                const qr = todosLosQR.find(q => q.id === id);
-                if (qr) {
-                    await descargarQR(qr.filename, qr.nombre, false);
-                    // Pequeña pausa entre descargas
-                    await new Promise(resolve => setTimeout(resolve, 500));
-                }
+                await descargarQRPorId(id);
+                await new Promise(resolve => setTimeout(resolve, 500));
             }
-            
-            // Limpiar selección después de descargar
             seleccionados.clear();
             renderizarGaleria();
             actualizarContadores();
-            
         } catch (error) {
             console.error('Error al descargar archivos:', error);
             alert('Error al descargar algunos archivos');
@@ -207,14 +172,10 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    // Descargar un QR individual
-    async function descargarQR(filename, nombre, mostrarMensaje = true) {
+    async function descargarQR(qrUrl, nombre, mostrarMensaje = true) {
         try {
-            const response = await fetch(`/api/download/${filename}`);
-            
-            if (!response.ok) {
-                throw new Error('Error al descargar el archivo');
-            }
+            const response = await fetch(qrUrl);
+            if (!response.ok) throw new Error('Error al descargar el archivo');
 
             const blob = await response.blob();
             const url = window.URL.createObjectURL(blob);
@@ -226,31 +187,31 @@ document.addEventListener('DOMContentLoaded', function() {
             document.body.removeChild(a);
             window.URL.revokeObjectURL(url);
 
-            if (mostrarMensaje) {
-                mostrarNotificacion(`✅ QR de ${nombre} descargado`, 'success');
-            }
+            if (mostrarMensaje) mostrarNotificacion(`✅ QR de ${nombre} descargado`, 'success');
 
         } catch (error) {
             console.error('Error al descargar:', error);
-            if (mostrarMensaje) {
-                mostrarNotificacion(`❌ Error al descargar QR de ${nombre}`, 'error');
-            }
-            throw error;
+            if (mostrarMensaje) mostrarNotificacion(`❌ Error al descargar QR de ${nombre}`, 'error');
         }
     }
 
-    // Abrir vista previa en modal
+    async function descargarQRPorId(id) {
+        const qr = todosLosQR.find(q => q.id === id);
+        if (!qr) return mostrarNotificacion('❌ QR no encontrado', 'error');
+        await descargarQR(qr.qrUrl, qr.nombre);
+    }
+
     function abrirPreview(id) {
         const qr = todosLosQR.find(q => q.id === id);
         if (!qr) return;
 
-        document.getElementById('preview-image').src = qr.qrPath;
+        document.getElementById('preview-image').src = qr.qrUrl;
         document.getElementById('preview-name').textContent = qr.nombre;
         document.getElementById('preview-category').textContent = qr.categoria;
         document.getElementById('preview-date').textContent = formatearFecha(qr.fechaRegistro);
-        
+
         document.getElementById('preview-download').onclick = () => {
-            descargarQR(qr.filename, qr.nombre);
+            descargarQR(qr.qrUrl, qr.nombre);
             cerrarModal();
         };
 
@@ -258,25 +219,19 @@ document.addEventListener('DOMContentLoaded', function() {
         document.body.style.overflow = 'hidden';
     }
 
-    // Cerrar modal
     function cerrarModal() {
         previewModal.classList.add('hidden');
         document.body.style.overflow = '';
     }
 
-    // Actualizar contadores
     function actualizarContadores() {
         totalCount.textContent = `Total: ${qrFiltrados.length} códigos QR`;
         selectedCount.textContent = `${seleccionados.size} seleccionados`;
-        
         downloadSelectedBtn.disabled = seleccionados.size === 0;
-        
-        const todosSeleccionados = qrFiltrados.length > 0 && 
-            qrFiltrados.every(qr => seleccionados.has(qr.id));
+        const todosSeleccionados = qrFiltrados.length > 0 && qrFiltrados.every(qr => seleccionados.has(qr.id));
         selectAllBtn.textContent = todosSeleccionados ? 'Deseleccionar Todo' : 'Seleccionar Todo';
     }
 
-    // Utilidades
     function mostrarLoading(mostrar) {
         loadingDiv.classList.toggle('hidden', !mostrar);
         galeriaGrid.classList.toggle('hidden', mostrar);
@@ -304,11 +259,7 @@ document.addEventListener('DOMContentLoaded', function() {
     function formatearFecha(fecha) {
         const date = new Date(fecha);
         return date.toLocaleDateString('es-ES', {
-            year: 'numeric',
-            month: 'short',
-            day: 'numeric',
-            hour: '2-digit',
-            minute: '2-digit'
+            year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit'
         });
     }
 
@@ -319,7 +270,6 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function mostrarNotificacion(mensaje, tipo = 'info') {
-        // Crear notificación temporal
         const notif = document.createElement('div');
         notif.style.cssText = `
             position: fixed;
@@ -335,15 +285,11 @@ document.addEventListener('DOMContentLoaded', function() {
             box-shadow: 0 4px 12px rgba(0,0,0,0.3);
         `;
         notif.textContent = mensaje;
-        
         document.body.appendChild(notif);
-        
-        setTimeout(() => {
-            notif.remove();
-        }, 3000);
+        setTimeout(() => notif.remove(), 3000);
     }
 
-    // Hacer funciones globales para onclick
     window.descargarQR = descargarQR;
     window.abrirPreview = abrirPreview;
+    window.descargarQRPorId = descargarQRPorId;
 });
