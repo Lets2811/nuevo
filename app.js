@@ -8,7 +8,8 @@ const Participante = require('./utils/pariticpantModel');
 const Salida = require('./utils/salidaModel');
 const Llegada = require('./utils/llegadaModelo');
 const cloudinary = require('./utils/cloudinary');
-
+const sharp = require('sharp');
+const { cloudinaryUpload } = require('./utils/cloudinary');
 const app = express();
 const PORT = 3000;
 
@@ -33,65 +34,82 @@ app.post('/registrar', async (req, res) => {
     console.log('📅 Timestamp:', new Date().toISOString());
     console.log('📦 Body recibido:', req.body);
     console.log('='.repeat(50));
-  
+
     const { nombre, categoria, numero } = req.body;
-  
+
     if (!nombre || !categoria || !numero) {
-      console.log('❌ Faltan campos requeridos');
-      return res.status(400).json({ error: 'Todos los campos son requeridos' });
+        console.log('❌ Faltan campos requeridos:', { nombre, categoria, numero });
+        return res.status(400).json({ error: 'Todos los campos son requeridos' });
     }
-  
+
     try {
-      const datosQR = JSON.stringify({ nombre, categoria, numero });
-  
-      const safeFilename = `${Date.now()}_${nombre.replace(/[^a-zA-Z0-9áéíóúÁÉÍÓÚñÑ ]/g, '_')}`;
-      const tempPath = path.join('/tmp', `${safeFilename}.png`);
-  
-      const qr_png = qr.image(datosQR, { type: 'png' });
-      const writeStream = fs.createWriteStream(tempPath);
-      qr_png.pipe(writeStream);
-  
-      writeStream.on('finish', async () => {
-        try {
-          const result = await cloudinary.uploader.upload(tempPath, {
-            folder: 'qr_codes',
-            public_id: safeFilename,
-            use_filename: true,
-            overwrite: true,
-          });
-  
-          fs.unlinkSync(tempPath); // eliminar el archivo temporal
-  
-          const nuevo = new Participante({
-            nombre,
-            categoria,
-            numero,
-            qrUrl: result.secure_url,
-          });
-  
-          await nuevo.save();
-  
-          const response = {
+        // Crear y guardar el participante en MongoDB (sin QR aún)
+        const nuevo = new Participante({ nombre, categoria, numero, qrUrl: '' });
+        await nuevo.save();
+
+        const id = nuevo._id.toString();
+        const safeFilename = `${id}_${nombre.replace(/[^a-zA-Z0-9áéíóúÁÉÍÓÚñÑ ]/g, '_')}`;
+        const datosQR = JSON.stringify({ id, nombre, categoria });
+        const qrImageBuffer = qr.imageSync(datosQR, { type: 'png' });
+
+        // Redimensionar QR para ocupar todo el ancho
+        const qrImageResizedBuffer = await sharp(qrImageBuffer)
+            .resize(400, 400)
+            .png()
+            .toBuffer();
+
+        // Texto centrado en una sola línea
+        const texto = `${nombre} - ${numero}`;
+        const svgText = `
+            <svg height="40" width="400">
+                <text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" font-size="18" font-family="Arial" fill="black">${texto}</text>
+            </svg>
+        `;
+        const textBuffer = Buffer.from(svgText);
+
+        // Combinar QR + texto
+        const combinedImagePath = path.join('/tmp', `${safeFilename}.png`);
+
+        await sharp({
+            create: {
+                width: 400,
+                height: 440, // 400 para el QR, 40 para el texto
+                channels: 4,
+                background: { r: 255, g: 255, b: 255, alpha: 1 }
+            }
+        })
+            .composite([
+                { input: qrImageResizedBuffer, top: 0, left: 0 },
+                { input: textBuffer, top: 405, left: 0 }
+            ])
+            .png()
+            .toFile(combinedImagePath);
+
+        // Subir a Cloudinary
+        const cloudinaryResult = await cloudinaryUpload(combinedImagePath, `qr_codes/${safeFilename}`);
+
+        // Guardar la URL del QR en el participante
+        nuevo.qrUrl = cloudinaryResult.secure_url;
+        await nuevo.save();
+
+        console.log('✅ Participante registrado y QR subido:', nuevo);
+
+        const response = {
             success: true,
             mensaje: 'Participante registrado',
-            id: nuevo._id,
-            nombre: nuevo.nombre,
-            categoria: nuevo.categoria,
             qrUrl: nuevo.qrUrl,
-          };
-  
-          console.log('✅ Participante guardado y QR subido a Cloudinary');
-          res.json(response);
-        } catch (uploadErr) {
-          console.error('💥 Error al subir QR a Cloudinary:', uploadErr);
-          res.status(500).json({ error: 'Error al subir QR' });
-        }
-      });
+            id,
+            nombre,
+            categoria,
+        };
+
+        res.json(response);
     } catch (error) {
-      console.error('💥 Error general en /registrar:', error);
-      res.status(500).json({ error: 'Error al registrar participante' });
+        console.error('💥 Error al registrar participante o generar QR:', error);
+        res.status(500).json({ error: 'Error al registrar participante' });
     }
-  });
+});
+
 // ===== RUTAS DE PÁGINAS =====
 
 app.get('/escaneo', (req, res) => {

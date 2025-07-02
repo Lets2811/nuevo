@@ -6,4 +6,20 @@ cloudinary.config({
   api_secret: '2D4vc-nWrqSY0ckNTDeRe90xU0o',
 });
 
-module.exports = cloudinary;
+/**
+ * Sube un archivo a Cloudinary
+ * @param {string} filePath - Ruta local del archivo
+ * @param {string} publicId - Ruta pública (carpeta/archivo) en Cloudinary
+ * @returns {Promise<object>} - Resultado de Cloudinary
+ */
+async function cloudinaryUpload(filePath, publicId) {
+    return cloudinary.uploader.upload(filePath, {
+      public_id: publicId,
+      overwrite: true,
+      resource_type: 'image'
+    });
+  }
+  
+  module.exports = {
+    cloudinaryUpload
+  };
