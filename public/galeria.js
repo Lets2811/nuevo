@@ -181,7 +181,7 @@ document.addEventListener('DOMContentLoaded', function() {
         try {
             const qrAEnviar = todosLosQR
                 .filter(qr => seleccionados.has(qr.id))
-                .map(qr => ({ nombre: qr.nombre, qrUrl: qr.qrUrl }));
+                .map(qr => ({ nombre: qr.nombre, qrUrl: qr.qrUrl, numero: qr.numero }));
     
             const response = await fetch('/api/descargar-zip', {
                 method: 'POST',
