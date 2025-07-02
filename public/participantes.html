@@ -635,7 +635,7 @@
         <!-- Estadísticas -->
         <section class="stats-grid">
             <div class="stat-card">
-                <div class="stat-number" id="totalParticipants">141</div>
+                <div class="stat-number" id="totalParticipants"></div>
                 <div class="stat-label">Total Participantes</div>
             </div>
             <div class="stat-card">
@@ -905,7 +905,8 @@
             
             // Avanzado Femenino (140-141)
             {numero: 140, categoria: "Avanzado Femenino", nombre: "Valentina Balcázar", talla: "S"},
-            {numero: 141, categoria: "Avanzado Femenino", nombre: "Karen Sarria", talla: "M"}
+            {numero: 141, categoria: "Avanzado Femenino", nombre: "Karen Sarria", talla: "M"},
+            {numero: 142, categoria: "Avanzado Femenino", nombre: "Sakura", talla: "M"}
         ];
 
         // Variables globales para filtros
@@ -930,11 +931,22 @@
 
             // Actualizar contador de resultados
             updateResultsCounter(dataToShow.length);
+
         }
 
         // Actualizar contador de resultados
         function updateResultsCounter(filteredCount) {
             const counter = document.getElementById('resultsCount');
+            const totalCount = participantes.length;
+
+            const totalText = document.getElementById('totalParticipants');
+            totalText.textContent = totalCount;
+
+            const menCount = participantes.filter(p => p.categoria.includes('Masculino')).length;
+            const womenCount = participantes.filter(p => p.categoria.includes('Femenino')).length;
+            document.getElementById('totalMen').textContent = menCount;
+            document.getElementById('totalWomen').textContent = womenCount;
+
             counter.textContent = `Mostrando ${filteredCount} de ${participantes.length} participantes`;
         }
 
