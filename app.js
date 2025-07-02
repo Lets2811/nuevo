@@ -12,6 +12,7 @@ const sharp = require('sharp');
 const { cloudinaryUpload } = require('./utils/cloudinary');
 const app = express();
 const PORT = 3000;
+const archiver = require('archiver');
 
 // ===== MIDDLEWARE CONFIGURADO CORRECTAMENTE =====
 app.use(bodyParser.urlencoded({ extended: true }));
@@ -199,6 +200,39 @@ app.get('/participante/:id', async (req, res) => {
     }
 });
 
+
+app.post('/api/descargar-zip', async (req, res) => {
+    const qrList = req.body.qrs;
+
+    if (!Array.isArray(qrList) || qrList.length === 0) {
+        return res.status(400).json({ error: 'Lista de QR inválida o vacía' });
+    }
+
+    res.set({
+        'Content-Type': 'application/zip',
+        'Content-Disposition': 'attachment; filename="qrs.zip"',
+    });
+
+    const archive = archiver('zip', { zlib: { level: 9 } });
+    archive.pipe(res);
+
+    for (const { nombre, qrUrl, numero } of qrList) {
+        try {
+            const response = await fetch(qrUrl);
+            if (!response.ok) continue;
+
+            const arrayBuffer = await response.arrayBuffer();
+            const buffer = Buffer.from(arrayBuffer);
+
+            const safeName = `QR_${nombre.replace(/[^a-zA-Z0-9]/g, '_')}-${numero}.png`;
+            archive.append(buffer, { name: safeName });
+        } catch (err) {
+            console.error(`Error con ${nombre}:`, err.message);
+        }
+    }
+
+    archive.finalize();
+});
 // ===== API DE GALERÍA =====
 
 app.get('/api/qr-codes', async (req, res) => {
@@ -213,7 +247,8 @@ app.get('/api/qr-codes', async (req, res) => {
         fechaRegistro: p.horaRegistro,
         qrUrl: p.qrUrl,
         filename: p.qrUrl?.split('/').pop() || 'NA', // nombre del archivo desde Cloudinary
-        downloadUrl: p.qrUrl // puede usarse directamente para descargar
+        downloadUrl: p.qrUrl, // puede usarse directamente para descargar
+        numero: p.numero,
       }));
   
       res.json({

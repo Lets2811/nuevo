@@ -12,10 +12,12 @@
   "description": "",
   "dependencies": {
     "@zxing/library": "^0.21.3",
+    "archiver": "^7.0.1",
     "body-parser": "^2.2.0",
     "cloudinary": "^2.7.0",
     "express": "^5.1.0",
     "mongoose": "^8.16.0",
+    "node-fetch": "^3.3.2",
     "nodemon": "^3.1.10",
     "qr-image": "^3.2.0",
     "sharp": "^0.34.2"

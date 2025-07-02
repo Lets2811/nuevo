@@ -363,7 +363,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             }
 
             // Contador de 5, 4, 3, 2, 1
-            for (let i = 5; i >= 1; i--) {
+            for (let i = 10; i >= 1; i--) {
                 actualizarContador(i);
                 
                 // Sonido/vibración en cada número

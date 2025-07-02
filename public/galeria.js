@@ -149,7 +149,7 @@ document.addEventListener('DOMContentLoaded', function() {
         actualizarContadores();
     }
 
-    async function descargarSeleccionados() {
+    async function descargarSeleccionadosOld() {
         if (seleccionados.size === 0) return;
 
         downloadSelectedBtn.disabled = true;
@@ -171,6 +171,49 @@ document.addEventListener('DOMContentLoaded', function() {
             downloadSelectedBtn.textContent = 'Descargar Seleccionados';
         }
     }
+
+    async function descargarSeleccionados() {
+        if (seleccionados.size === 0) return;
+    
+        const overlay = document.getElementById('download-overlay');
+        overlay.classList.remove('hidden');
+    
+        try {
+            const qrAEnviar = todosLosQR
+                .filter(qr => seleccionados.has(qr.id))
+                .map(qr => ({ nombre: qr.nombre, qrUrl: qr.qrUrl }));
+    
+            const response = await fetch('/api/descargar-zip', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ qrs: qrAEnviar }),
+            });
+    
+            if (!response.ok) throw new Error('Error al generar ZIP');
+    
+            const blob = await response.blob();
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'qrs.zip';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            window.URL.revokeObjectURL(url);
+    
+            mostrarNotificacion(`✅ ZIP descargado con éxito, ${qrAEnviar.length} registros descargados`, 'success');
+            seleccionados.clear();
+            renderizarGaleria();
+            actualizarContadores();
+        } catch (error) {
+            console.error('Error al descargar ZIP:', error);
+            mostrarNotificacion('❌ Error al generar ZIP', 'error');
+        } finally {
+            overlay.classList.add('hidden');
+        }
+    }
+    
+    
 
     async function descargarQR(qrUrl, nombre, mostrarMensaje = true) {
         try {
