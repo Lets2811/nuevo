@@ -23,8 +23,51 @@
   <div class="container">
     <header class="page-header">
       <h1>🏃‍♂️ Registrar Salida</h1>
-      <p class="subtitle">Escanea los códigos QR de los 3 competidores para registrar su salida simultánea</p>
+      <p class="subtitle">Selecciona el número de competidores y escanea sus códigos QR para registrar su salida</p>
     </header>
+
+    <!-- Selector de número de participantes -->
+    <div class="participant-selector">
+      <div class="selector-header">
+        <h3>👥 Número de Competidores</h3>
+        <p>Selecciona cuántos competidores participarán en esta ronda</p>
+      </div>
+      
+      <div class="selector-options">
+        <label class="selector-option">
+          <input type="radio" name="numParticipantes" value="1" id="num-1">
+          <div class="option-card">
+            <div class="option-icon">🏃‍♂️</div>
+            <div class="option-text">
+              <strong>1 Competidor</strong>
+              <span>Individual</span>
+            </div>
+          </div>
+        </label>
+        
+        <label class="selector-option">
+          <input type="radio" name="numParticipantes" value="2" id="num-2">
+          <div class="option-card">
+            <div class="option-icon">🏃‍♂️🏃‍♀️</div>
+            <div class="option-text">
+              <strong>2 Competidores</strong>
+              <span>Parejas</span>
+            </div>
+          </div>
+        </label>
+        
+        <label class="selector-option">
+          <input type="radio" name="numParticipantes" value="3" id="num-3" checked>
+          <div class="option-card">
+            <div class="option-icon">🏃‍♂️🏃‍♀️🏃‍♂️</div>
+            <div class="option-text">
+              <strong>3 Competidores</strong>
+              <span>Equipos</span>
+            </div>
+          </div>
+        </label>
+      </div>
+    </div>
 
     <!-- Sección de información de la ronda -->
     <div id="team-info" class="team-section">
@@ -86,7 +129,7 @@
         
         <div id="scanner-status" class="status-display">
           <span class="status-icon">ℹ️</span>
-          <span class="status-text">Presiona "Escanear Competidor"</span>
+          <span class="status-text">Selecciona el número de competidores y presiona "Escanear Competidor"</span>
         </div>
       </div>
     </div>
@@ -172,12 +215,102 @@
     </div>
 
     <footer class="page-footer">
-      <p>💡 <strong>Tip:</strong> Escanea los QR de los 3 competidores antes de que inicie la ronda</p>
+      <p>💡 <strong>Tip:</strong> Selecciona el número de competidores antes de escanear</p>
     </footer>
   </div>
 
   <!-- Estilos adicionales para competidores -->
   <style>
+    .participant-selector {
+      background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+      border: 2px solid #2196F3;
+      border-radius: 15px;
+      padding: 20px;
+      margin: 20px 0;
+      box-shadow: 0 8px 32px rgba(33, 150, 243, 0.1);
+    }
+
+    .selector-header {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    .selector-header h3 {
+      margin: 0 0 10px 0;
+      color: #2196F3;
+      font-size: 1.4em;
+    }
+
+    .selector-header p {
+      margin: 0;
+      color: #888;
+      font-size: 0.9em;
+    }
+
+    .selector-options {
+      display: flex;
+      gap: 15px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    .selector-option {
+      cursor: pointer;
+      flex: 1;
+      min-width: 150px;
+      max-width: 200px;
+    }
+
+    .selector-option input[type="radio"] {
+      display: none;
+    }
+
+    .option-card {
+      background-color: #2a2a2a;
+      border: 2px solid #444;
+      border-radius: 10px;
+      padding: 15px;
+      text-align: center;
+      transition: all 0.3s ease;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .selector-option input[type="radio"]:checked + .option-card {
+      border-color: #2196F3;
+      background-color: #1a2a3d;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(33, 150, 243, 0.3);
+    }
+
+    .option-icon {
+      font-size: 2em;
+      margin-bottom: 10px;
+    }
+
+    .option-text {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
+
+    .option-text strong {
+      color: #fff;
+      font-size: 1.1em;
+    }
+
+    .option-text span {
+      color: #888;
+      font-size: 0.9em;
+    }
+
+    .selector-option input[type="radio"]:checked + .option-card .option-text strong {
+      color: #2196F3;
+    }
+
     .team-section {
       background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
       border: 2px solid #00FF3C;
@@ -237,6 +370,10 @@
       border-style: dashed;
     }
 
+    .member-slot.hidden {
+      display: none;
+    }
+
     .member-icon {
       font-size: 2em;
       margin-right: 15px;
@@ -290,6 +427,14 @@
     }
 
     @media (max-width: 768px) {
+      .selector-options {
+        flex-direction: column;
+      }
+      
+      .selector-option {
+        max-width: none;
+      }
+      
       .team-header {
         flex-direction: column;
         gap: 10px;

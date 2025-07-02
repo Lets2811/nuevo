@@ -6,16 +6,51 @@ document.addEventListener('DOMContentLoaded', async () => {
     const resultadoDiv = document.getElementById('resultado');
     const teamCounter = document.getElementById('team-counter');
 
-    // Estado de la ronda (3 competidores individuales)
+    // Estado de la ronda (ahora con número dinámico de competidores)
     let rondaActual = {
         competidores: [],
         categoria: null,
-        completa: false
+        completa: false,
+        maxCompetidores: 3 // Por defecto 3, pero será dinámico
     };
 
     // Limpiar resultados previos
     resultadoDiv.classList.add('hidden');
     
+    // Obtener número de participantes seleccionado
+    function obtenerNumeroParticipantes() {
+        const seleccionado = document.querySelector('input[name="numParticipantes"]:checked');
+        return seleccionado ? parseInt(seleccionado.value) : 3;
+    }
+
+    // Actualizar número máximo de competidores cuando cambie la selección
+    document.querySelectorAll('input[name="numParticipantes"]').forEach(radio => {
+        radio.addEventListener('change', function() {
+            const nuevoMax = parseInt(this.value);
+            
+            // Si hay competidores ya registrados, confirmar el cambio
+            if (rondaActual.competidores.length > 0) {
+                const confirmar = confirm(`¿Estás seguro de cambiar a ${nuevoMax} competidor(es)? Esto limpiará la ronda actual.`);
+                if (confirmar) {
+                    limpiarRonda();
+                    rondaActual.maxCompetidores = nuevoMax;
+                } else {
+                    // Revertir selección
+                    document.querySelector(`input[name="numParticipantes"][value="${rondaActual.maxCompetidores}"]`).checked = true;
+                    return;
+                }
+            } else {
+                rondaActual.maxCompetidores = nuevoMax;
+            }
+            
+            actualizarVisualizacionRonda();
+            updateStatus(`ℹ️ Configurado para ${nuevoMax} competidor(es). Presiona "Escanear Competidor"`, 'ready');
+        });
+    });
+
+    // Inicializar con el valor seleccionado
+    rondaActual.maxCompetidores = obtenerNumeroParticipantes();
+
     // Verificar que todos los elementos existen
     console.log('🔍 Verificando elementos del DOM...');
     console.log('📹 Video element:', videoElement ? '✅' : '❌');
@@ -28,10 +63,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     const memberSlots = document.querySelectorAll('.member-slot');
     console.log('👥 Team members container:', teamMembers ? '✅' : '❌');
     console.log('🎯 Member slots found:', memberSlots.length);
-    
-    if (memberSlots.length !== 3) {
-        console.warn('⚠️ Se esperaban 3 slots, se encontraron:', memberSlots.length);
-    }
 
     startBtn.addEventListener('click', async () => {
         // Verificar si la ronda ya está completa
@@ -153,10 +184,10 @@ document.addEventListener('DOMContentLoaded', async () => {
                 throw new Error(`${participanteData.nombre} ya está en la ronda`);
             }
 
-            // Verificar si la ronda ya está completa
-            console.log('🔍 Verificando capacidad. Competidores actuales:', rondaActual.competidores.length);
-            if (rondaActual.competidores.length >= 3) {
-                throw new Error('La ronda ya está completa (3/3 competidores)');
+            // Verificar si la ronda ya está completa (usando maxCompetidores dinámico)
+            console.log('🔍 Verificando capacidad. Competidores actuales:', rondaActual.competidores.length, 'Máximo:', rondaActual.maxCompetidores);
+            if (rondaActual.competidores.length >= rondaActual.maxCompetidores) {
+                throw new Error(`La ronda ya está completa (${rondaActual.maxCompetidores}/${rondaActual.maxCompetidores} competidores)`);
             }
 
             // Establecer categoría de la ronda (todos deben ser de la misma)
@@ -191,10 +222,10 @@ document.addEventListener('DOMContentLoaded', async () => {
                 navigator.vibrate(200);
             }
 
-            mostrarNotificacion(`✅ ${participanteData.nombre} agregado a la ronda (${rondaActual.competidores.length}/3)`, 'success');
+            mostrarNotificacion(`✅ ${participanteData.nombre} agregado a la ronda (${rondaActual.competidores.length}/${rondaActual.maxCompetidores})`, 'success');
 
             // Si la ronda está completa, iniciar contador
-            if (rondaActual.competidores.length === 3) {
+            if (rondaActual.competidores.length === rondaActual.maxCompetidores) {
                 rondaActual.completa = true;
                 updateStatus('🏁 ¡Ronda completa! Preparando salida...', 'success');
                 
@@ -205,7 +236,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             } else {
                 // Permitir escanear el siguiente competidor
                 resetScannerOnly();
-                updateStatus(`🏁 Competidor ${rondaActual.competidores.length}/3 agregado. Escanea el siguiente.`, 'ready');
+                updateStatus(`🏁 Competidor ${rondaActual.competidores.length}/${rondaActual.maxCompetidores} agregado. Escanea el siguiente.`, 'ready');
             }
 
         } catch (error) {
@@ -234,14 +265,16 @@ document.addEventListener('DOMContentLoaded', async () => {
         
         const memberSlots = document.querySelectorAll('.member-slot');
         const totalCompetidores = rondaActual.competidores.length;
+        const maxCompetidores = rondaActual.maxCompetidores;
 
         console.log('📊 Slots encontrados:', memberSlots.length);
         console.log('📊 Total competidores:', totalCompetidores);
+        console.log('📊 Máximo competidores:', maxCompetidores);
         console.log('📊 Competidores:', rondaActual.competidores);
 
         // Actualizar contador
         if (teamCounter) {
-            teamCounter.textContent = `${totalCompetidores}/3`;
+            teamCounter.textContent = `${totalCompetidores}/${maxCompetidores}`;
             console.log('✅ Contador actualizado:', teamCounter.textContent);
         } else {
             console.log('❌ No se encontró elemento team-counter');
@@ -254,41 +287,50 @@ document.addEventListener('DOMContentLoaded', async () => {
             
             console.log(`🎯 Actualizando slot ${competidorNumber}:`, competidor);
             
-            if (competidor) {
-                // Slot ocupado
-                console.log(`✅ Llenando slot ${competidorNumber} con:`, competidor.nombre);
-                slot.classList.remove('empty');
-                slot.classList.add('filled');
+            // Mostrar/ocultar slot según el número máximo de competidores
+            if (competidorNumber <= maxCompetidores) {
+                slot.classList.remove('hidden');
                 
-                const icon = slot.querySelector('.member-icon');
-                const label = slot.querySelector('.member-label');
-                const status = slot.querySelector('.member-status');
-                
-                if (icon && label && status) {
-                    icon.textContent = '✅';
-                    label.textContent = competidor.nombre;
-                    status.textContent = competidor.categoria;
-                    console.log(`✅ Slot ${competidorNumber} actualizado correctamente`);
+                if (competidor) {
+                    // Slot ocupado
+                    console.log(`✅ Llenando slot ${competidorNumber} con:`, competidor.nombre);
+                    slot.classList.remove('empty');
+                    slot.classList.add('filled');
+                    
+                    const icon = slot.querySelector('.member-icon');
+                    const label = slot.querySelector('.member-label');
+                    const status = slot.querySelector('.member-status');
+                    
+                    if (icon && label && status) {
+                        icon.textContent = '✅';
+                        label.textContent = competidor.nombre;
+                        status.textContent = competidor.categoria;
+                        console.log(`✅ Slot ${competidorNumber} actualizado correctamente`);
+                    } else {
+                        console.log(`❌ No se encontraron elementos en slot ${competidorNumber}:`, {icon, label, status});
+                    }
                 } else {
-                    console.log(`❌ No se encontraron elementos en slot ${competidorNumber}:`, {icon, label, status});
+                    // Slot vacío
+                    console.log(`⭕ Dejando slot ${competidorNumber} vacío`);
+                    slot.classList.remove('filled');
+                    slot.classList.add('empty');
+                    
+                    const icon = slot.querySelector('.member-icon');
+                    const label = slot.querySelector('.member-label');
+                    const status = slot.querySelector('.member-status');
+                    
+                    if (icon && label && status) {
+                        icon.textContent = '👤';
+                        label.textContent = `Competidor ${competidorNumber}`;
+                        status.textContent = 'Pendiente';
+                    } else {
+                        console.log(`❌ No se encontraron elementos en slot vacío ${competidorNumber}`);
+                    }
                 }
             } else {
-                // Slot vacío
-                console.log(`⭕ Dejando slot ${competidorNumber} vacío`);
-                slot.classList.remove('filled');
-                slot.classList.add('empty');
-                
-                const icon = slot.querySelector('.member-icon');
-                const label = slot.querySelector('.member-label');
-                const status = slot.querySelector('.member-status');
-                
-                if (icon && label && status) {
-                    icon.textContent = '👤';
-                    label.textContent = `Competidor ${competidorNumber}`;
-                    status.textContent = 'Pendiente';
-                } else {
-                    console.log(`❌ No se encontraron elementos en slot vacío ${competidorNumber}`);
-                }
+                // Ocultar slot si excede el número máximo
+                slot.classList.add('hidden');
+                console.log(`🚫 Ocultando slot ${competidorNumber} (excede máximo: ${maxCompetidores})`);
             }
         });
 
@@ -341,7 +383,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 navigator.vibrate([200, 100, 200]);
             }
 
-            // Registrar las salidas de los 3 competidores en este momento exacto
+            // Registrar las salidas de todos los competidores en este momento exacto
             const rondaRegistrada = await registrarSalidasDeLaRonda();
             
             // Esperar un momento antes de mostrar el resultado
@@ -391,14 +433,20 @@ document.addEventListener('DOMContentLoaded', async () => {
             `<p style="margin: 5px 0; color: #00FF3C;">🏃‍♂️ ${c.nombre}</p>`
         ).join('');
 
+        const tipoCompetencia = rondaActual.maxCompetidores === 1 ? 'Individual' : 
+                               rondaActual.maxCompetidores === 2 ? 'Parejas' : 'Equipos';
+
         contadorOverlay.innerHTML = `
             <div style="text-align: center; max-width: 90%; margin-bottom: 40px;">
                 <h2 style="color: #00FF3C; margin: 0 0 20px 0; font-size: 1.5em;">
-                    🏁 Preparando Salida de la Ronda
+                    🏁 Preparando Salida ${tipoCompetencia}
                 </h2>
                 <div style="background-color: #1C1C1C; padding: 20px; border-radius: 15px; border: 2px solid #00FF3C;">
                     <p style="margin: 10px 0; font-size: 1.1em; color: #FFD700;">
                         <strong>🏆 ${rondaActual.categoria || 'No especificada'}</strong>
+                    </p>
+                    <p style="margin: 10px 0; color: #2196F3;">
+                        <strong>${rondaActual.maxCompetidores} Competidor(es)</strong>
                     </p>
                     <div style="margin: 15px 0;">
                         ${competidoresHTML}
@@ -493,7 +541,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     }
 
-    // Función para registrar las salidas de toda la ronda (3 registros individuales)
+    // Función para registrar las salidas de toda la ronda
     async function registrarSalidasDeLaRonda() {
         console.log('Registrando salidas de la ronda:', rondaActual);
         try {
@@ -547,7 +595,9 @@ document.addEventListener('DOMContentLoaded', async () => {
                 competidores: salidasRegistradas,
                 categoria: rondaActual.categoria,
                 horaSalida: salidasRegistradas[0].horaSalida, // Todos tienen la misma hora
-                numeroRonda: salidasRegistradas[0].numeroSalida // Todos tienen números consecutivos
+                numeroRonda: salidasRegistradas[0].numeroSalida, // Todos tienen números consecutivos
+                tipoCompetencia: rondaActual.maxCompetidores === 1 ? 'Individual' : 
+                                rondaActual.maxCompetidores === 2 ? 'Parejas' : 'Equipos'
             };
 
         } catch (error) {
@@ -568,7 +618,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
             // Actualizar datos de la ronda
             document.getElementById('equipoNombre').textContent = 
-                `Ronda ${rondaRegistrada.numeroRonda || 'N/A'}`;
+                `${rondaRegistrada.tipoCompetencia} #${rondaRegistrada.numeroRonda || 'N/A'}`;
             document.getElementById('categoriaParticipante').textContent = 
                 rondaRegistrada.categoria || 'No registrada';
             document.getElementById('horaSalida').textContent = 
@@ -691,7 +741,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         rondaActual = {
             competidores: [],
             categoria: null,
-            completa: false
+            completa: false,
+            maxCompetidores: obtenerNumeroParticipantes()
         };
         
         // Actualizar visualización
@@ -705,7 +756,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         // Notificación
         mostrarNotificacion('🗑️ Ronda limpiada, lista para nuevos competidores', 'info');
         
-        updateStatus('ℹ️ Presiona "Escanear Competidor"', 'ready');
+        updateStatus(`ℹ️ Configurado para ${rondaActual.maxCompetidores} competidor(es). Presiona "Escanear Competidor"`, 'ready');
     };
 
     // Función global para resetear escáner
@@ -731,14 +782,15 @@ document.addEventListener('DOMContentLoaded', async () => {
         rondaActual = {
             competidores: [],
             categoria: null,
-            completa: false
+            completa: false,
+            maxCompetidores: obtenerNumeroParticipantes()
         };
         
         // Actualizar visualización de la ronda
         actualizarVisualizacionRonda();
         
         // Resetear estado del escáner
-        updateStatus('ℹ️ Presiona "Escanear Competidor"', 'ready');
+        updateStatus(`ℹ️ Configurado para ${rondaActual.maxCompetidores} competidor(es). Presiona "Escanear Competidor"`, 'ready');
         
         // Asegurar que el escáner esté detenido
         codeReader.reset();
@@ -820,7 +872,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // Inicialización
     actualizarVisualizacionRonda();
-    updateStatus('ℹ️ Presiona "Escanear Competidor"', 'ready');
+    updateStatus(`ℹ️ Configurado para ${rondaActual.maxCompetidores} competidor(es). Presiona "Escanear Competidor"`, 'ready');
     
     console.log('🚀 Registro de salidas por ronda inicializado correctamente');
     
