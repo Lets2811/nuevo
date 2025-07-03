@@ -11,7 +11,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         competidores: [],
         categoria: null,
         completa: false,
-        maxCompetidores: 3 // Por defecto 3, pero será dinámico
+        maxCompetidores: 3, // Por defecto 3, pero será dinámico
+        readyToLaunch: false // NUEVO: Estado para indicar si está listo para lanzar
     };
 
     // Limpiar resultados previos
@@ -67,7 +68,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     startBtn.addEventListener('click', async () => {
         // Verificar si la ronda ya está completa
         if (rondaActual.completa) {
-            mostrarNotificacion('🏁 La ronda ya está completa. Usa "Limpiar Ronda" para empezar una nueva.', 'warning');
+            mostrarNotificacion('🏁 La ronda ya está completa. Usa "Lanzar Salida" para iniciar o "Limpiar Ronda" para empezar una nueva.', 'warning');
             return;
         }
 
@@ -224,15 +225,20 @@ document.addEventListener('DOMContentLoaded', async () => {
 
             mostrarNotificacion(`✅ ${participanteData.nombre} agregado a la ronda (${rondaActual.competidores.length}/${rondaActual.maxCompetidores})`, 'success');
 
-            // Si la ronda está completa, iniciar contador
+            // MODIFICADO: Si la ronda está completa, marcar como lista para lanzar
             if (rondaActual.competidores.length === rondaActual.maxCompetidores) {
                 rondaActual.completa = true;
-                updateStatus('🏁 ¡Ronda completa! Preparando salida...', 'success');
+                rondaActual.readyToLaunch = true;
+                updateStatus('🏁 ¡Ronda completa! Presiona "Lanzar Salida" para iniciar el contador.', 'success');
                 
-                // Esperar un momento antes de iniciar el contador
-                setTimeout(async () => {
-                    await iniciarContadorSalida();
-                }, 1500);
+                // Mostrar mensaje especial
+                mostrarNotificacion('🚀 ¡Ronda lista! Presiona "Lanzar Salida" cuando estés preparado.', 'success');
+                
+                // Actualizar visualización para mostrar el botón
+                actualizarVisualizacionRonda();
+                
+                // Resetear solo el escáner
+                resetScannerOnly();
             } else {
                 // Permitir escanear el siguiente competidor
                 resetScannerOnly();
@@ -245,6 +251,50 @@ document.addEventListener('DOMContentLoaded', async () => {
             throw error;
         }
     }
+
+    // NUEVA FUNCIÓN: Lanzar salida manualmente
+    window.lanzarSalida = async function() {
+        console.log('🚀 Lanzando salida de la ronda...');
+        
+        // Verificar que la ronda esté completa y lista
+        if (!rondaActual.completa || !rondaActual.readyToLaunch) {
+            mostrarNotificacion('❌ La ronda no está completa o no está lista para lanzar', 'error');
+            return;
+        }
+
+        // Confirmación antes de lanzar
+        const confirmar = confirm('¿Estás seguro de que quieres lanzar la salida? Esta acción no se puede deshacer.');
+        if (!confirmar) {
+            console.log('❌ Lanzamiento de salida cancelado por el usuario');
+            return;
+        }
+
+        try {
+            // Marcar como no lista para lanzar (evitar múltiples lanzamientos)
+            rondaActual.readyToLaunch = false;
+            
+            // Ocultar el botón de lanzar salida
+            const launchButton = document.getElementById('launch-exit');
+            if (launchButton) {
+                launchButton.style.display = 'none';
+            }
+            
+            updateStatus('🚀 Iniciando contador de salida...', 'info');
+            
+            // Iniciar el contador de salida
+            await iniciarContadorSalida();
+            
+        } catch (error) {
+            console.error('Error al lanzar salida:', error);
+            
+            // Restaurar estado en caso de error
+            rondaActual.readyToLaunch = true;
+            actualizarVisualizacionRonda();
+            
+            updateStatus('❌ Error al lanzar salida: ' + error.message, 'error');
+            mostrarNotificacion('❌ Error al lanzar salida: ' + error.message, 'error');
+        }
+    };
 
     // Función para resetear solo el escáner (no la ronda)
     function resetScannerOnly() {
@@ -347,6 +397,22 @@ document.addEventListener('DOMContentLoaded', async () => {
         } else {
             console.log('❌ No se encontró botón clear-team');
         }
+
+        // NUEVO: Mostrar/ocultar botón de lanzar salida
+        const launchButton = document.getElementById('launch-exit');
+        if (launchButton) {
+            if (rondaActual.completa && rondaActual.readyToLaunch) {
+                launchButton.style.display = 'block';
+                launchButton.classList.add('ready');
+                console.log('🚀 Botón lanzar salida mostrado');
+            } else {
+                launchButton.style.display = 'none';
+                launchButton.classList.remove('ready');
+                console.log('ℹ️ Botón lanzar salida ocultado');
+            }
+        } else {
+            console.log('❌ No se encontró botón launch-exit');
+        }
         
         console.log('🎨 Actualización de visualización completada');
     }
@@ -362,7 +428,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 navigator.vibrate(200);
             }
 
-            // Contador de 5, 4, 3, 2, 1
+            // Contador de 10, 9, 8, 7, 6, 5, 4, 3, 2, 1
             for (let i = 10; i >= 1; i--) {
                 actualizarContador(i);
                 
@@ -465,7 +531,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 align-items: center;
                 justify-content: center;
             ">
-                5
+                10
             </div>
             
             <div style="text-align: center; margin-top: 30px;">
@@ -742,7 +808,8 @@ document.addEventListener('DOMContentLoaded', async () => {
             competidores: [],
             categoria: null,
             completa: false,
-            maxCompetidores: obtenerNumeroParticipantes()
+            maxCompetidores: obtenerNumeroParticipantes(),
+            readyToLaunch: false
         };
         
         // Actualizar visualización
@@ -783,7 +850,8 @@ document.addEventListener('DOMContentLoaded', async () => {
             competidores: [],
             categoria: null,
             completa: false,
-            maxCompetidores: obtenerNumeroParticipantes()
+            maxCompetidores: obtenerNumeroParticipantes(),
+            readyToLaunch: false
         };
         
         // Actualizar visualización de la ronda
@@ -811,8 +879,11 @@ document.addEventListener('DOMContentLoaded', async () => {
         // Ocultar contador
         ocultarContador();
         
-        // Marcar ronda como no completa para permitir modificaciones
-        rondaActual.completa = false;
+        // Restaurar estado para permitir lanzar de nuevo
+        rondaActual.readyToLaunch = true;
+        
+        // Actualizar visualización para mostrar botón de lanzar de nuevo
+        actualizarVisualizacionRonda();
         
         // Solo resetear el escáner, no la ronda
         codeReader.reset();
@@ -826,7 +897,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         // Notificación de cancelación
         mostrarNotificacion('🚫 Salida de la ronda cancelada', 'warning');
         
-        updateStatus('🏁 Ronda lista, presiona "Escanear Competidor" si necesitas agregar/cambiar competidores', 'ready');
+        updateStatus('🏁 Salida cancelada. Presiona "Lanzar Salida" para intentar de nuevo.', 'ready');
     };
 
     // Función global para ver tiempos
@@ -895,6 +966,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         rondaActual.competidores = [];
         rondaActual.categoria = null;
         rondaActual.completa = false;
+        rondaActual.readyToLaunch = false;
         actualizarVisualizacionRonda();
         
         console.log('✅ Test básico completado exitosamente');
