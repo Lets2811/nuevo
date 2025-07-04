@@ -29,6 +29,10 @@ app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
+app.get('/cards', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'tarjetas.html'));
+});
+
 app.post('/registrar', async (req, res) => {
     console.log('='.repeat(50));
     console.log('🚀 RUTA /registrar EJECUTÁNDOSE');

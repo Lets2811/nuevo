@@ -1,0 +1,1024 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🎯 Generador de Tarjetas de Participantes - Con Fondo Personalizado</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #000;
+            color: #fff;
+            margin: 0;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .controls {
+            background-color: #1c1c1c;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .form-group {
+            margin-bottom: 15px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 5px;
+            color: #00ff3c;
+            font-weight: bold;
+        }
+        
+        input[type="file"] {
+            background-color: #333;
+            border: 2px dashed #00ff3c;
+            border-radius: 10px;
+            padding: 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        input[type="file"]:hover {
+            background-color: #444;
+            border-color: #00cc33;
+        }
+        
+        #imageStatus {
+            transition: all 0.3s;
+        }
+        
+        .font-control-buttons {
+            display: flex;
+            gap: 5px;
+            flex-wrap: wrap;
+            justify-content: center;
+            margin-top: 10px;
+        }
+        
+        .font-control-buttons button {
+            border: none;
+            border-radius: 15px;
+            padding: 5px 10px;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: bold;
+        }
+        
+        .font-control-buttons button:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+        }
+
+        input, select, button {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #333;
+            border-radius: 5px;
+            background-color: #000;
+            color: #fff;
+            font-size: 16px;
+        }
+        
+        button {
+            background-color: #00ff3c;
+            color: #000;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        button:hover {
+            background-color: #00cc33;
+            transform: translateY(-2px);
+        }
+        
+        .preview-section {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .canvas-container {
+            background-color: #1c1c1c;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+        }
+        
+        canvas {
+            border: 2px solid #00ff3c;
+            border-radius: 10px;
+            max-width: 100%;
+            height: auto;
+        }
+        
+        .batch-controls {
+            background-color: #1c1c1c;
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 20px;
+        }
+        
+        .batch-progress {
+            background-color: #333;
+            height: 20px;
+            border-radius: 10px;
+            overflow: hidden;
+            margin: 10px 0;
+        }
+        
+        .batch-progress-bar {
+            background-color: #00ff3c;
+            height: 100%;
+            width: 0%;
+            transition: width 0.3s;
+        }
+        
+        .download-buttons {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 10px;
+            margin-top: 20px;
+        }
+        
+        .hidden {
+            display: none;
+        }
+        
+        @media (max-width: 768px) {
+            .preview-section {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎯 Generador de Tarjetas de Participantes</h1>
+        <p style="color: #ccc; margin-top: 10px; font-size: 16px;">
+            Sube tu PNG de fondo y genera tarjetas personalizadas para todos los participantes
+        </p>
+        
+        <!-- Subir imagen de fondo -->
+        <div class="controls">
+            <h3>🖼️ Imagen de Fondo</h3>
+            <div class="form-group">
+                <label for="backgroundUpload">Cargar PNG de fondo:</label>
+                <input type="file" id="backgroundUpload" accept=".png,.jpg,.jpeg,.webp" onchange="loadCustomBackground(this)">
+            </div>
+            <div id="imageStatus" style="padding: 10px; margin-top: 10px; border-radius: 5px; background-color: #333; color: #fff; text-align: center;">
+                📥 Selecciona una imagen PNG de fondo o usa el diseño por defecto
+            </div>
+            <div style="margin-top: 10px; padding: 10px; background-color: #1a1a1a; border-radius: 5px; border-left: 4px solid #00ff3c;">
+                <p style="margin: 0; font-size: 14px; color: #ccc;">
+                    💡 <strong>Tip:</strong> Sube tu PNG original, ajusta posiciones X,Y y tamaños de fuente. Usa los botones +/- para ajustes rápidos o los presets para tamaños estándar.
+                </p>
+            </div>
+            <div style="margin-top: 5px; text-align: center;">
+                <button onclick="generateSampleBackground()" style="background-color: #2196F3; color: white; border: none; padding: 5px 15px; border-radius: 15px; font-size: 12px; cursor: pointer;">
+                    🎨 Generar Ejemplo de Fondo
+                </button>
+            </div>
+        </div>
+
+        <!-- Controles individuales -->
+        <div class="controls">
+            <h3>📝 Crear Tarjeta Individual</h3>
+            <div class="form-group">
+                <label for="participantNumber">Número del Participante:</label>
+                <input type="number" id="participantNumber" min="1" max="999" value="007">
+            </div>
+            
+            <div class="form-group">
+                <label for="participantCategory">Categoría:</label>
+                <select id="participantCategory">
+                    <option value="PRINCIPIANTE">PRINCIPIANTE</option>
+                    <option value="INTERMEDIO">INTERMEDIO</option>
+                    <option value="AVANZADO">AVANZADO</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label>Ajuste de posición del texto:</label>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                    <div>
+                        <label for="categoryX">Categoría X:</label>
+                        <input type="number" id="categoryX" value="60" min="0" max="800" onchange="generateSingleCard(); updateBatchConfigSummary();">
+                    </div>
+                    <div>
+                        <label for="categoryY">Categoría Y:</label>
+                        <input type="number" id="categoryY" value="120" min="0" max="600" onchange="generateSingleCard(); updateBatchConfigSummary();">
+                    </div>
+                    <div>
+                        <label for="numberX">Número X:</label>
+                        <input type="number" id="numberX" value="60" min="0" max="800" onchange="generateSingleCard(); updateBatchConfigSummary();">
+                    </div>
+                    <div>
+                        <label for="numberY">Número Y:</label>
+                        <input type="number" id="numberY" value="320" min="0" max="600" onchange="generateSingleCard(); updateBatchConfigSummary();">
+                    </div>
+                </div>
+                <button onclick="resetTextPositions()" style="background-color: #333; margin-top: 5px;">🔄 Restablecer</button>
+                <button onclick="centerTextPositions()" style="background-color: #333; margin-top: 5px;">🎯 Centrar Texto</button>
+            </div>
+            
+            <div class="form-group">
+                <label>Ajuste de tamaño de fuente:</label>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                    <div>
+                        <label for="categoryFontSize">Tamaño Categoría:</label>
+                        <input type="number" id="categoryFontSize" value="36" min="10" max="200" onchange="generateSingleCard(); updateBatchConfigSummary();">
+                    </div>
+                    <div>
+                        <label for="numberFontSize">Tamaño Número:</label>
+                        <input type="number" id="numberFontSize" value="160" min="20" max="500" onchange="generateSingleCard(); updateBatchConfigSummary();">
+                    </div>
+                </div>
+                <div class="font-control-buttons">
+                    <button onclick="setFontPreset('small')" style="background-color: #444;">📏 Pequeño</button>
+                    <button onclick="setFontPreset('medium')" style="background-color: #444;">📐 Mediano</button>
+                    <button onclick="setFontPreset('large')" style="background-color: #444;">📏 Grande</button>
+                    <button onclick="setFontPreset('xlarge')" style="background-color: #444;">📏 Extra Grande</button>
+                </div>
+                <div class="font-control-buttons">
+                    <button onclick="adjustFontSize('category', 5)" style="background-color: #00ff3c; color: #000;">📈 +5 Categoría</button>
+                    <button onclick="adjustFontSize('category', -5)" style="background-color: #ff4444; color: #fff;">📉 -5 Categoría</button>
+                    <button onclick="adjustFontSize('number', 20)" style="background-color: #00ff3c; color: #000;">📈 +20 Número</button>
+                    <button onclick="adjustFontSize('number', -20)" style="background-color: #ff4444; color: #fff;">📉 -20 Número</button>
+                </div>
+            </div>
+            
+            <button onclick="generateSingleCard()">🎨 Generar Tarjeta</button>
+        </div>
+        
+        <!-- Vista previa -->
+        <div class="preview-section">
+            <div class="canvas-container">
+                <h3>🖼️ Vista Previa</h3>
+                <canvas id="previewCanvas" width="800" height="600"></canvas>
+                <div class="download-buttons">
+                    <button onclick="downloadCurrentCard()">📥 Descargar PNG</button>
+                    <button onclick="downloadCurrentCardJPG()">📥 Descargar JPG</button>
+                </div>
+            </div>
+            
+            <div class="canvas-container">
+                <h3>📊 Información & Guía</h3>
+                <div id="cardInfo">
+                    <p><strong>Número:</strong> <span id="infoNumber">007</span></p>
+                    <p><strong>Categoría:</strong> <span id="infoCategory">PRINCIPIANTE</span></p>
+                    <p><strong>Posición Categoría:</strong> <span id="infoCategoryPos">60, 120</span></p>
+                    <p><strong>Posición Número:</strong> <span id="infoNumberPos">60, 320</span></p>
+                    <p><strong>Tamaño Categoría:</strong> <span id="infoCategorySize">36px</span></p>
+                    <p><strong>Tamaño Número:</strong> <span id="infoNumberSize">160px</span></p>
+                    <p><strong>Dimensiones:</strong> <span id="infoDimensions">800x600px</span></p>
+                    <p><strong>Formato:</strong> PNG/JPG</p>
+                </div>
+                <div style="margin-top: 15px; padding: 10px; background-color: #2a2a2a; border-radius: 5px; border-left: 4px solid #2196F3;">
+                    <p style="margin: 0; font-size: 12px; color: #ccc;">
+                        <strong>📖 Cómo usar:</strong><br>
+                        1. Sube tu PNG de fondo<br>
+                        2. Ajusta las posiciones X,Y<br>
+                        3. Configura tamaños de fuente<br>
+                        4. Usa presets o botones +/-<br>
+                        5. Genera individual o en lote<br>
+                        6. Descarga las imágenes
+                    </p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Controles de lote -->
+        <div class="batch-controls">
+            <h3>📦 Generación en Lote</h3>
+            <div class="form-group">
+                <label for="batchCategory">Categoría para lote:</label>
+                <select id="batchCategory">
+                    <option value="Principiante Masculino">Principiante Masculino</option>
+                    <option value="Intermedio Masculino">Intermedio Masculino</option>
+                    <option value="Avanzado Masculino">Avanzado Masculino</option>
+                    <option value="Principiante Femenino">Principiante Femenino</option>
+                    <option value="Intermedio Femenino">Intermedio Femenino</option>
+                    <option value="Avanzado Femenino">Avanzado Femenino</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label for="batchFormat">Formato de descarga:</label>
+                <select id="batchFormat">
+                    <option value="png">PNG (Alta calidad)</option>
+                    <option value="jpg">JPG (Menor tamaño)</option>
+                </select>
+            </div>
+            
+            <button onclick="generateBatchCards()" id="batchButton">📦 Generar Lote Completo</button>
+            
+            <div class="batch-progress hidden" id="batchProgress">
+                <div class="batch-progress-bar" id="batchProgressBar"></div>
+                <p id="batchStatus">Procesando...</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Datos de participantes (copiados del HTML original)
+        const participantes = [
+            // Principiante Masculino (001-044)
+            {numero: 1, categoria: "Principiante Masculino", nombre: "Yeison Felipe Ortiz Agredo", talla: "L"},
+            {numero: 2, categoria: "Principiante Masculino", nombre: "Ary Jose Ordóñez", talla: "L"},
+            {numero: 3, categoria: "Principiante Masculino", nombre: "Wilson Ortega", talla: "L"},
+            {numero: 4, categoria: "Principiante Masculino", nombre: "Brayan Devia", talla: "M"},
+            {numero: 5, categoria: "Principiante Masculino", nombre: "Maicol Muñoz", talla: "L"},
+            {numero: 6, categoria: "Principiante Masculino", nombre: "David Prado", talla: "M"},
+            {numero: 7, categoria: "Principiante Masculino", nombre: "Daniel Osorio", talla: "L"},
+            {numero: 8, categoria: "Principiante Masculino", nombre: "Kevin Daniel Ramos", talla: "L"},
+            {numero: 9, categoria: "Principiante Masculino", nombre: "Fabián Martínez", talla: "L"},
+            {numero: 10, categoria: "Principiante Masculino", nombre: "Angel Pame", talla: "L"},
+            {numero: 11, categoria: "Principiante Masculino", nombre: "Pedro Alegria", talla: "M"},
+            {numero: 12, categoria: "Principiante Masculino", nombre: "Juan José Zúñiga", talla: "M"},
+            {numero: 13, categoria: "Principiante Masculino", nombre: "Kevin Adrián Moreno", talla: "L"},
+            {numero: 14, categoria: "Principiante Masculino", nombre: "Christian Camilo Rivera", talla: "L"},
+            {numero: 15, categoria: "Principiante Masculino", nombre: "Andrés Felipe Ramírez", talla: "L"},
+            {numero: 16, categoria: "Principiante Masculino", nombre: "Carlos Enrique", talla: "XL"},
+            {numero: 17, categoria: "Principiante Masculino", nombre: "Jhon Michael Lemos", talla: "M"},
+            {numero: 18, categoria: "Principiante Masculino", nombre: "James Cadena", talla: "L"},
+            {numero: 19, categoria: "Principiante Masculino", nombre: "Julián Ortega", talla: "M"},
+            {numero: 20, categoria: "Principiante Masculino", nombre: "Camilo Chávez", talla: "M"},
+            {numero: 21, categoria: "Principiante Masculino", nombre: "Juan Guillermo Solano", talla: "M"},
+            {numero: 22, categoria: "Principiante Masculino", nombre: "Daniel Felipe Bedoya", talla: "M"},
+            {numero: 23, categoria: "Principiante Masculino", nombre: "Andrés Molina", talla: "XL"},
+            {numero: 24, categoria: "Principiante Masculino", nombre: "Esteban Muñoz", talla: "L"},
+            {numero: 25, categoria: "Principiante Masculino", nombre: "Andrés Pomeo", talla: "XL"},
+            {numero: 26, categoria: "Principiante Masculino", nombre: "Danilo Chamorro", talla: "M"},
+            {numero: 27, categoria: "Principiante Masculino", nombre: "Angelo Camilo", talla: "M"},
+            {numero: 28, categoria: "Principiante Masculino", nombre: "Fernando Pérez", talla: "M"},
+            {numero: 29, categoria: "Principiante Masculino", nombre: "Angel Benavides", talla: "S"},
+            {numero: 30, categoria: "Principiante Masculino", nombre: "Fernando Pérez", talla: "M"},
+            {numero: 31, categoria: "Principiante Masculino", nombre: "Sebastián Minota", talla: "M"},
+            {numero: 32, categoria: "Principiante Masculino", nombre: "Ismael Sandoval", talla: "L"},
+            {numero: 33, categoria: "Principiante Masculino", nombre: "Peter Mena", talla: "XL"},
+            {numero: 34, categoria: "Principiante Masculino", nombre: "Juan Pablo", talla: "L"},
+            {numero: 35, categoria: "Principiante Masculino", nombre: "Jhan Carlos Sánchez", talla: "L"},
+            {numero: 36, categoria: "Principiante Masculino", nombre: "Nicolás Santacruz", talla: "M"},
+            {numero: 37, categoria: "Principiante Masculino", nombre: "Jhonatan Meneses", talla: "XL"},
+            {numero: 38, categoria: "Principiante Masculino", nombre: "Juan Meneses", talla: "L"},
+            {numero: 39, categoria: "Principiante Masculino", nombre: "Jhonatan Paniagua", talla: "M"},
+            {numero: 40, categoria: "Principiante Masculino", nombre: "Jesús López", talla: "M"},
+            {numero: 41, categoria: "Principiante Masculino", nombre: "Ronaldo Bolaños", talla: "M"},
+            {numero: 42, categoria: "Principiante Masculino", nombre: "Rosember Angucho", talla: "XS"},
+            {numero: 43, categoria: "Principiante Masculino", nombre: "Duvan Felipe Armero", talla: "M"},
+            {numero: 44, categoria: "Principiante Masculino", nombre: "Cristian Galagarra", talla: "M"},
+            
+            // Intermedio Masculino (045-064)
+            {numero: 45, categoria: "Intermedio Masculino", nombre: "Junior López", talla: "S"},
+            {numero: 46, categoria: "Intermedio Masculino", nombre: "Johan Betancourt", talla: "M"},
+            {numero: 47, categoria: "Intermedio Masculino", nombre: "Emerson Sánchez", talla: "L"},
+            {numero: 48, categoria: "Intermedio Masculino", nombre: "Santiago Quintero", talla: "M"},
+            {numero: 49, categoria: "Intermedio Masculino", nombre: "Óscar David Enrique", talla: "M"},
+            {numero: 50, categoria: "Intermedio Masculino", nombre: "Daniel Felipe Parra", talla: "M"},
+            {numero: 51, categoria: "Intermedio Masculino", nombre: "Luis Miguel Aguirre", talla: "L"},
+            {numero: 52, categoria: "Intermedio Masculino", nombre: "Edwin Gironza", talla: "L"},
+            {numero: 53, categoria: "Intermedio Masculino", nombre: "Antonio Cuasquer", talla: "L"},
+            {numero: 54, categoria: "Intermedio Masculino", nombre: "Duvan Ramos", talla: "L"},
+            {numero: 55, categoria: "Intermedio Masculino", nombre: "Yojan Pillimue", talla: "M"},
+            {numero: 56, categoria: "Intermedio Masculino", nombre: "Diego Casanova", talla: "M"},
+            {numero: 57, categoria: "Intermedio Masculino", nombre: "Daniel Samboni", talla: "XL"},
+            {numero: 58, categoria: "Intermedio Masculino", nombre: "Walter Iván Guamanga", talla: "XL"},
+            {numero: 59, categoria: "Intermedio Masculino", nombre: "Alex Troyano", talla: "M"},
+            {numero: 60, categoria: "Intermedio Masculino", nombre: "Julián David Pacue", talla: "L"},
+            {numero: 61, categoria: "Intermedio Masculino", nombre: "David Ulabarry", talla: "L"},
+            {numero: 62, categoria: "Intermedio Masculino", nombre: "Arnol Sanchez", talla: "M"},
+            {numero: 63, categoria: "Intermedio Masculino", nombre: "Juan Felipe Burbano", talla: "M"},
+            {numero: 64, categoria: "Intermedio Masculino", nombre: "Coach Duvan", talla: "L"},
+            {numero: 143, categoria: "Intermedio Masculino", nombre: "Alejandro San", talla: "L"},
+
+            // Avanzado Masculino (065-079)
+            {numero: 65, categoria: "Avanzado Masculino", nombre: "Cristhian Betancourth", talla: "L"},
+            {numero: 66, categoria: "Avanzado Masculino", nombre: "John Edison Solarte", talla: "M"},
+            {numero: 67, categoria: "Avanzado Masculino", nombre: "Cristhian Valencia", talla: "XL"},
+            {numero: 68, categoria: "Avanzado Masculino", nombre: "Jhonatan Ordóñez", talla: "L"},
+            {numero: 69, categoria: "Avanzado Masculino", nombre: "Yeiko", talla: "L"},
+            {numero: 70, categoria: "Avanzado Masculino", nombre: "Brayan Stiven Muñoz", talla: "M"},
+            {numero: 71, categoria: "Avanzado Masculino", nombre: "Fretman Vargas", talla: "M"},
+            {numero: 72, categoria: "Avanzado Masculino", nombre: "Jonathan Hernández", talla: "L"},
+            {numero: 73, categoria: "Avanzado Masculino", nombre: "Daniel San", talla: "L"},
+            {numero: 74, categoria: "Avanzado Masculino", nombre: "Cristian Vinasco", talla: "M"},
+            {numero: 75, categoria: "Avanzado Masculino", nombre: "Daniel Gómez", talla: "M"},
+            {numero: 76, categoria: "Avanzado Masculino", nombre: "Jhojan Santacruz", talla: "L"},
+            {numero: 77, categoria: "Avanzado Masculino", nombre: "Giovanni Bolaños", talla: "L"},
+            {numero: 78, categoria: "Avanzado Masculino", nombre: "Andrés Chagüendo", talla: "XL"},
+            {numero: 79, categoria: "Avanzado Masculino", nombre: "James Campo", talla: "L"},
+            
+            // Principiante Femenino (080-130)
+            {numero: 80, categoria: "Principiante Femenino", nombre: "Lenny Paola Rojas Bolaños", talla: "S"},
+            {numero: 81, categoria: "Principiante Femenino", nombre: "Ana Lucia Bravo Lopez", talla: "XS"},
+            {numero: 82, categoria: "Principiante Femenino", nombre: "María Alejandra Vivas", talla: "M"},
+            {numero: 83, categoria: "Principiante Femenino", nombre: "Liliana Ruiz", talla: "M"},
+            {numero: 84, categoria: "Principiante Femenino", nombre: "Valentina Mendez Agredo", talla: "M"},
+            {numero: 85, categoria: "Principiante Femenino", nombre: "Anny Yazmin Buitron", talla: "M"},
+            {numero: 86, categoria: "Principiante Femenino", nombre: "Angela Maria Possos Hernandez", talla: "M"},
+            {numero: 87, categoria: "Principiante Femenino", nombre: "Carmen Cuetia", talla: "M"},
+            {numero: 88, categoria: "Principiante Femenino", nombre: "Vanesa Anaya", talla: "M"},
+            {numero: 89, categoria: "Principiante Femenino", nombre: "Keren Yireth Sánchez", talla: "M"},
+            {numero: 90, categoria: "Principiante Femenino", nombre: "Yulieth Valentina López", talla: "S"},
+            {numero: 91, categoria: "Principiante Femenino", nombre: "Angelica Andrea Realpe", talla: "M"},
+            {numero: 92, categoria: "Principiante Femenino", nombre: "Giselle Palomino", talla: "M"},
+            {numero: 93, categoria: "Principiante Femenino", nombre: "Denyi Lorena López", talla: "M"},
+            {numero: 94, categoria: "Principiante Femenino", nombre: "Isa Roberto", talla: "XS"},
+            {numero: 95, categoria: "Principiante Femenino", nombre: "Nilce Hernández", talla: "L"},
+            {numero: 96, categoria: "Principiante Femenino", nombre: "Patricia Hoyos", talla: "S"},
+            {numero: 97, categoria: "Principiante Femenino", nombre: "Diana Hoyos", talla: "S"},
+            {numero: 98, categoria: "Principiante Femenino", nombre: "Maye Peña", talla: "S"},
+            {numero: 99, categoria: "Principiante Femenino", nombre: "Viviana Paredes", talla: "M"},
+            {numero: 100, categoria: "Principiante Femenino", nombre: "Meliza López", talla: "S"},
+            {numero: 101, categoria: "Principiante Femenino", nombre: "Ana Lucía Rodríguez", talla: "L"},
+            {numero: 102, categoria: "Principiante Femenino", nombre: "Karol Viviana Quiñones", talla: "L"},
+            {numero: 103, categoria: "Principiante Femenino", nombre: "Lisbet Joaqui", talla: "S"},
+            {numero: 104, categoria: "Principiante Femenino", nombre: "Lina Peña Marín", talla: "M"},
+            {numero: 105, categoria: "Principiante Femenino", nombre: "Lizeth Mellizo", talla: "M"},
+            {numero: 106, categoria: "Principiante Femenino", nombre: "María Isabel Correa", talla: "S"},
+            {numero: 107, categoria: "Principiante Femenino", nombre: "Fanny Gutiérrez", talla: "M"},
+            {numero: 108, categoria: "Principiante Femenino", nombre: "Angelica Ledesma", talla: "M"},
+            {numero: 109, categoria: "Principiante Femenino", nombre: "Alba Palmito", talla: "L"},
+            {numero: 110, categoria: "Principiante Femenino", nombre: "María José Fuertes", talla: "M"},
+            {numero: 111, categoria: "Principiante Femenino", nombre: "Alexandra Salamanca", talla: "L"},
+            {numero: 112, categoria: "Principiante Femenino", nombre: "Luisa Pedroza", talla: "M"},
+            {numero: 113, categoria: "Principiante Femenino", nombre: "Diana Samboni", talla: "S"},
+            {numero: 114, categoria: "Principiante Femenino", nombre: "Valentina Franco", talla: "S"},
+            {numero: 115, categoria: "Principiante Femenino", nombre: "María Yeni Pulido", talla: "M"},
+            {numero: 116, categoria: "Principiante Femenino", nombre: "Yuri Stefany Pacue", talla: "S"},
+            {numero: 117, categoria: "Principiante Femenino", nombre: "Evelin Velasco", talla: "S"},
+            {numero: 118, categoria: "Principiante Femenino", nombre: "Dayana Velasco", talla: "M"},
+            {numero: 119, categoria: "Principiante Femenino", nombre: "Claudia Girón", talla: "M"},
+            {numero: 120, categoria: "Principiante Femenino", nombre: "Daniela Hoyos Benítez", talla: "M"},
+            {numero: 121, categoria: "Principiante Femenino", nombre: "Yurani Chilito", talla: "M"},
+            {numero: 122, categoria: "Principiante Femenino", nombre: "Laura Sánchez", talla: "M"},
+            {numero: 123, categoria: "Principiante Femenino", nombre: "Daniela Chilito", talla: "M"},
+            {numero: 124, categoria: "Principiante Femenino", nombre: "Viviana Vejarano", talla: "S"},
+            {numero: 125, categoria: "Principiante Femenino", nombre: "Daniela Muñoz", talla: "S"},
+            {numero: 126, categoria: "Principiante Femenino", nombre: "Catalina Popo Salazar", talla: "XS"},
+            {numero: 127, categoria: "Principiante Femenino", nombre: "Ximena Rosero", talla: "S"},
+            {numero: 128, categoria: "Principiante Femenino", nombre: "Tatiana Cerón", talla: "L"},
+            {numero: 129, categoria: "Principiante Femenino", nombre: "Gina Navia", talla: "M"},
+            {numero: 130, categoria: "Principiante Femenino", nombre: "Juliana Martínez", talla: "S"},
+            
+            // Intermedio Femenino (131-139)
+            {numero: 131, categoria: "Intermedio Femenino", nombre: "Yerly Pino", talla: "M"},
+            {numero: 132, categoria: "Intermedio Femenino", nombre: "Sofía Rendón", talla: "S"},
+            {numero: 133, categoria: "Intermedio Femenino", nombre: "Melisa Trejos", talla: "M"},
+            {numero: 134, categoria: "Intermedio Femenino", nombre: "Yessenia Ruiz Pérez", talla: "M"},
+            {numero: 135, categoria: "Intermedio Femenino", nombre: "Lorena Troyano", talla: "S"},
+            {numero: 136, categoria: "Intermedio Femenino", nombre: "Sandra Muñoz", talla: "L"},
+            {numero: 137, categoria: "Intermedio Femenino", nombre: "Dayana Cando Díaz", talla: "S"},
+            {numero: 138, categoria: "Intermedio Femenino", nombre: "Lina Morales", talla: "M"},
+            {numero: 139, categoria: "Intermedio Femenino", nombre: "Gisell Tovar", talla: "M"},
+            
+            // Avanzado Femenino (140-142)
+            {numero: 140, categoria: "Avanzado Femenino", nombre: "Valentina Balcázar", talla: "S"},
+            {numero: 141, categoria: "Avanzado Femenino", nombre: "Karen Sarria", talla: "M"},
+            {numero: 142, categoria: "Avanzado Femenino", nombre: "Sakura", talla: "M"}
+        ];
+
+        // Variable global para almacenar la imagen de fondo
+        let backgroundImage = null;
+        let imageLoaded = false;
+
+        // Función para cargar imagen personalizada
+        function loadCustomBackground(input) {
+            const imageStatus = document.getElementById('imageStatus');
+            
+            if (input.files && input.files[0]) {
+                const file = input.files[0];
+                
+                // Validar que sea una imagen
+                if (!file.type.startsWith('image/')) {
+                    imageStatus.style.backgroundColor = '#ff4444';
+                    imageStatus.innerHTML = '❌ Por favor selecciona un archivo de imagen válido';
+                    return;
+                }
+                
+                // Validar tamaño del archivo (máximo 10MB)
+                if (file.size > 10 * 1024 * 1024) {
+                    imageStatus.style.backgroundColor = '#ff4444';
+                    imageStatus.innerHTML = '❌ El archivo es demasiado grande (máximo 10MB)';
+                    return;
+                }
+                
+                imageStatus.style.backgroundColor = '#FFD700';
+                imageStatus.style.color = '#000';
+                imageStatus.innerHTML = '⏳ Cargando imagen...';
+                
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const img = new Image();
+                    img.onload = function() {
+                        backgroundImage = img;
+                        imageLoaded = true;
+                        
+                        imageStatus.style.backgroundColor = '#00ff3c';
+                        imageStatus.innerHTML = `✅ Imagen cargada exitosamente (${img.width}x${img.height}px)`;
+                        
+                        // Actualizar canvas para que use las dimensiones de la imagen
+                        const canvas = document.getElementById('previewCanvas');
+                        canvas.width = img.width;
+                        canvas.height = img.height;
+                        
+                        // Actualizar información de dimensiones
+                        document.getElementById('infoDimensions').textContent = `${img.width}x${img.height}px`;
+                        
+                        // Actualizar límites de posición
+                        updatePositionLimits(img.width, img.height);
+                        
+                        // Regenerar la tarjeta actual
+                        generateSingleCard();
+                        
+                        console.log('✅ Imagen personalizada cargada');
+                    };
+                    img.onerror = function() {
+                        imageStatus.style.backgroundColor = '#ff4444';
+                        imageStatus.innerHTML = '❌ Error al procesar la imagen';
+                    };
+                    img.src = e.target.result;
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        // Función para cargar la imagen de fondo
+        function loadBackgroundImage() {
+            return new Promise((resolve, reject) => {
+                const img = new Image();
+                img.onload = function() {
+                    backgroundImage = img;
+                    imageLoaded = true;
+                    
+                    // Ajustar canvas a las dimensiones de la imagen
+                    const canvas = document.getElementById('previewCanvas');
+                    canvas.width = img.width;
+                    canvas.height = img.height;
+                    
+                    const imageStatus = document.getElementById('imageStatus');
+                    imageStatus.style.backgroundColor = '#00ff3c';
+                    imageStatus.innerHTML = `✅ Imagen base cargada (${img.width}x${img.height}px)`;
+                    
+                    // Actualizar información de dimensiones
+                    document.getElementById('infoDimensions').textContent = `${img.width}x${img.height}px`;
+                    
+                    // Actualizar límites de posición
+                    updatePositionLimits(img.width, img.height);
+                    
+                    console.log('✅ Imagen de fondo cargada exitosamente');
+                    resolve(img);
+                };
+                img.onerror = function() {
+                    console.warn('⚠️ No se encontró imagen de fondo, usando diseño por defecto');
+                    createFallbackBackground();
+                    resolve(null);
+                };
+                
+                // Aquí puedes cambiar la ruta a tu imagen PNG
+                // Ejemplo: img.src = 'mi-fondo-personalizado.png';
+                img.src = 'fondo-tarjeta.png'; // Cambia esta ruta por la de tu imagen
+            });
+        }
+
+        // Función de respaldo para crear fondo si no se carga la imagen
+        function createFallbackBackground() {
+            const canvas = document.createElement('canvas');
+            canvas.width = 800;
+            canvas.height = 600;
+            const ctx = canvas.getContext('2d');
+            
+            // Fondo negro
+            ctx.fillStyle = '#2b2b2b';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // Elementos decorativos (líneas diagonales amarillas)
+            ctx.fillStyle = '#c4ff00';
+            
+            // Línea diagonal grande
+            ctx.beginPath();
+            ctx.moveTo(canvas.width * 0.6, 0);
+            ctx.lineTo(canvas.width, canvas.height * 0.4);
+            ctx.lineTo(canvas.width, canvas.height);
+            ctx.lineTo(canvas.width * 0.3, canvas.height);
+            ctx.closePath();
+            ctx.fill();
+            
+            // Línea diagonal pequeña inferior
+            ctx.beginPath();
+            ctx.moveTo(canvas.width * 0.1, canvas.height * 0.85);
+            ctx.lineTo(canvas.width * 0.6, canvas.height * 0.85);
+            ctx.lineTo(canvas.width * 0.65, canvas.height);
+            ctx.lineTo(canvas.width * 0.1, canvas.height);
+            ctx.closePath();
+            ctx.fill();
+            
+            // Punto decorativo superior izquierdo
+            ctx.fillStyle = '#c4ff00';
+            ctx.beginPath();
+            ctx.arc(60, 60, 12, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // Icono de corredor
+            ctx.fillStyle = '#2b2b2b';
+            ctx.font = 'bold 24px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillText('🏃', canvas.width * 0.55, canvas.height * 0.9);
+            
+            // Convertir a imagen
+            const img = new Image();
+            img.onload = function() {
+                backgroundImage = img;
+                imageLoaded = true;
+                
+                // Actualizar límites de posición
+                updatePositionLimits(canvas.width, canvas.height);
+                
+                // Actualizar estado en la interfaz
+                const imageStatus = document.getElementById('imageStatus');
+                imageStatus.style.backgroundColor = '#FFD700';
+                imageStatus.style.color = '#000';
+                imageStatus.innerHTML = '⚠️ Usando diseño por defecto - Sube tu PNG personalizado';
+            };
+            img.src = canvas.toDataURL();
+        }
+
+        // Función principal para generar una tarjeta
+        function generateCard(numero, categoria, canvas = null) {
+            if (!imageLoaded) {
+                console.log('⏳ Esperando que cargue la imagen de fondo...');
+                setTimeout(() => generateCard(numero, categoria, canvas), 100);
+                return;
+            }
+
+            // Usar el canvas proporcionado o el de vista previa
+            const targetCanvas = canvas || document.getElementById('previewCanvas');
+            const ctx = targetCanvas.getContext('2d');
+            
+            // Limpiar canvas
+            ctx.clearRect(0, 0, targetCanvas.width, targetCanvas.height);
+            
+            // Dibujar imagen de fondo
+            if (backgroundImage) {
+                ctx.drawImage(backgroundImage, 0, 0, targetCanvas.width, targetCanvas.height);
+            }
+            
+            // Formatear número con ceros a la izquierda
+            const numeroFormateado = numero.toString().padStart(3, '0');
+            
+            // Obtener posiciones (solo para vista previa, en lote usar valores por defecto)
+            const categoryX = canvas ? parseInt(document.getElementById('categoryX')?.value || 60) : parseInt(document.getElementById('categoryX')?.value || 60);
+            const categoryY = canvas ? parseInt(document.getElementById('categoryY')?.value || 120) : parseInt(document.getElementById('categoryY')?.value || 120);
+            const numberX = canvas ? parseInt(document.getElementById('numberX')?.value || 60) : parseInt(document.getElementById('numberX')?.value || 60);
+            const numberY = canvas ? parseInt(document.getElementById('numberY')?.value || 320) : parseInt(document.getElementById('numberY')?.value || 320);
+            
+            // Obtener tamaños de fuente (usar valores actuales también en lote)
+            const categoryFontSize = parseInt(document.getElementById('categoryFontSize')?.value || 36);
+            const numberFontSize = parseInt(document.getElementById('numberFontSize')?.value || 160);
+            
+            // Configurar texto con sombra para mejor visibilidad
+            ctx.shadowColor = 'rgba(0, 0, 0, 0.8)';
+            ctx.shadowBlur = 4;
+            ctx.shadowOffsetX = 2;
+            ctx.shadowOffsetY = 2;
+            
+            // Texto de categoría
+            ctx.fillStyle = '#ffffff';
+            ctx.font = `bold ${categoryFontSize}px Arial`;
+            ctx.textAlign = 'left';
+            ctx.fillText(categoria.toUpperCase(), categoryX, categoryY);
+            
+            // Número grande
+            ctx.fillStyle = '#ffffff';
+            ctx.font = `bold ${numberFontSize}px Arial`;
+            ctx.textAlign = 'left';
+            ctx.fillText(numeroFormateado, numberX, numberY);
+            
+            // Limpiar sombra
+            ctx.shadowColor = 'transparent';
+            ctx.shadowBlur = 0;
+            ctx.shadowOffsetX = 0;
+            ctx.shadowOffsetY = 0;
+            
+            // Actualizar información
+            if (!canvas) {
+                document.getElementById('infoNumber').textContent = numeroFormateado;
+                document.getElementById('infoCategory').textContent = categoria.toUpperCase();
+                document.getElementById('infoCategoryPos').textContent = `${categoryX}, ${categoryY}`;
+                document.getElementById('infoNumberPos').textContent = `${numberX}, ${numberY}`;
+                document.getElementById('infoDimensions').textContent = `${targetCanvas.width}x${targetCanvas.height}px`;
+                document.getElementById('infoCategorySize').textContent = `${categoryFontSize}px`;
+                document.getElementById('infoNumberSize').textContent = `${numberFontSize}px`;
+            }
+        }
+
+        // Función para actualizar el resumen de configuración del lote
+        function updateBatchConfigSummary() {
+            const categoryX = document.getElementById('categoryX')?.value || 60;
+            const categoryY = document.getElementById('categoryY')?.value || 120;
+            const numberX = document.getElementById('numberX')?.value || 60;
+            const numberY = document.getElementById('numberY')?.value || 320;
+            const categoryFontSize = document.getElementById('categoryFontSize')?.value || 36;
+            const numberFontSize = document.getElementById('numberFontSize')?.value || 160;
+            
+            document.getElementById('batchCategoryPos').textContent = `${categoryX}, ${categoryY}`;
+            document.getElementById('batchNumberPos').textContent = `${numberX}, ${numberY}`;
+            document.getElementById('batchCategorySize').textContent = `${categoryFontSize}px`;
+            document.getElementById('batchNumberSize').textContent = `${numberFontSize}px`;
+        }
+
+        // Función para ajustar tamaño de fuente incrementalmente
+        function adjustFontSize(type, increment) {
+            if (type === 'category') {
+                const current = parseInt(document.getElementById('categoryFontSize').value);
+                const newSize = Math.max(10, Math.min(200, current + increment));
+                document.getElementById('categoryFontSize').value = newSize;
+            } else if (type === 'number') {
+                const current = parseInt(document.getElementById('numberFontSize').value);
+                const newSize = Math.max(20, Math.min(500, current + increment));
+                document.getElementById('numberFontSize').value = newSize;
+            }
+            generateSingleCard();
+            updateBatchConfigSummary();
+        }
+
+        // Función para establecer presets de tamaño de fuente
+        function setFontPreset(size) {
+            let categorySize, numberSize;
+            
+            switch(size) {
+                case 'small':
+                    categorySize = 24;
+                    numberSize = 100;
+                    break;
+                case 'medium':
+                    categorySize = 36;
+                    numberSize = 160;
+                    break;
+                case 'large':
+                    categorySize = 48;
+                    numberSize = 220;
+                    break;
+                case 'xlarge':
+                    categorySize = 60;
+                    numberSize = 300;
+                    break;
+                default:
+                    categorySize = 36;
+                    numberSize = 160;
+            }
+            
+            document.getElementById('categoryFontSize').value = categorySize;
+            document.getElementById('numberFontSize').value = numberSize;
+            generateSingleCard();
+            updateBatchConfigSummary();
+        }
+
+        // Función para restablecer posiciones de texto
+        function resetTextPositions() {
+            document.getElementById('categoryX').value = 60;
+            document.getElementById('categoryY').value = 120;
+            document.getElementById('numberX').value = 60;
+            document.getElementById('numberY').value = 320;
+            document.getElementById('categoryFontSize').value = 36;
+            document.getElementById('numberFontSize').value = 160;
+            generateSingleCard();
+        }
+
+        // Función para generar ejemplo de fondo
+        function generateSampleBackground() {
+            const canvas = document.createElement('canvas');
+            canvas.width = 800;
+            canvas.height = 600;
+            const ctx = canvas.getContext('2d');
+            
+            // Recrear el fondo de ejemplo pero más similar al original
+            ctx.fillStyle = '#2b2b2b';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // Elementos decorativos (líneas diagonales amarillas)
+            ctx.fillStyle = '#c4ff00';
+            
+            // Línea diagonal grande (más similar al original)
+            ctx.beginPath();
+            ctx.moveTo(canvas.width * 0.5, 0);
+            ctx.lineTo(canvas.width, canvas.height * 0.6);
+            ctx.lineTo(canvas.width, canvas.height);
+            ctx.lineTo(canvas.width * 0.2, canvas.height);
+            ctx.closePath();
+            ctx.fill();
+            
+            // Línea diagonal pequeña inferior
+            ctx.beginPath();
+            ctx.moveTo(0, canvas.height * 0.8);
+            ctx.lineTo(canvas.width * 0.6, canvas.height * 0.8);
+            ctx.lineTo(canvas.width * 0.65, canvas.height);
+            ctx.lineTo(0, canvas.height);
+            ctx.closePath();
+            ctx.fill();
+            
+            // Punto decorativo superior izquierdo
+            ctx.fillStyle = '#c4ff00';
+            ctx.beginPath();
+            ctx.arc(40, 40, 8, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // Agregar texto de ejemplo para guía
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.3)';
+            ctx.font = '20px Arial';
+            ctx.fillText('CATEGORIA AQUÍ', 60, 120);
+            ctx.font = '80px Arial';
+            ctx.fillText('000', 60, 280);
+            
+            // Descargar
+            const link = document.createElement('a');
+            link.download = 'fondo_ejemplo_tarjeta.png';
+            link.href = canvas.toDataURL();
+            link.click();
+            
+            // Mostrar mensaje
+            const imageStatus = document.getElementById('imageStatus');
+            const originalBg = imageStatus.style.backgroundColor;
+            const originalText = imageStatus.innerHTML;
+            
+            imageStatus.style.backgroundColor = '#2196F3';
+            imageStatus.innerHTML = '📥 Ejemplo de fondo descargado - Úsalo como plantilla';
+            
+            setTimeout(() => {
+                imageStatus.style.backgroundColor = originalBg;
+                imageStatus.innerHTML = originalText;
+            }, 3000);
+        }
+
+        // Función para actualizar límites de posición
+        function updatePositionLimits(width, height) {
+            document.getElementById('categoryX').max = width;
+            document.getElementById('numberX').max = width;
+            document.getElementById('categoryY').max = height;
+            document.getElementById('numberY').max = height;
+        }
+
+        // Función para centrar texto automáticamente
+        function centerTextPositions() {
+            const canvas = document.getElementById('previewCanvas');
+            const width = canvas.width;
+            const height = canvas.height;
+            
+            // Centrar horizontalmente y posicionar verticalmente
+            document.getElementById('categoryX').value = Math.round(width * 0.1);
+            document.getElementById('categoryY').value = Math.round(height * 0.2);
+            document.getElementById('numberX').value = Math.round(width * 0.1);
+            document.getElementById('numberY').value = Math.round(height * 0.55);
+            generateSingleCard();
+        }
+
+        // Función para generar tarjeta individual
+        function generateSingleCard() {
+            const numero = parseInt(document.getElementById('participantNumber').value);
+            const categoria = document.getElementById('participantCategory').value;
+            
+            generateCard(numero, categoria);
+            updateBatchConfigSummary(); // Actualizar resumen del lote
+        }
+
+        // Función para descargar la tarjeta actual
+        function downloadCurrentCard() {
+            const canvas = document.getElementById('previewCanvas');
+            const link = document.createElement('a');
+            link.download = `tarjeta_${document.getElementById('infoNumber').textContent}_${document.getElementById('infoCategory').textContent}.png`;
+            link.href = canvas.toDataURL();
+            link.click();
+        }
+
+        function downloadCurrentCardJPG() {
+            const canvas = document.getElementById('previewCanvas');
+            const link = document.createElement('a');
+            link.download = `tarjeta_${document.getElementById('infoNumber').textContent}_${document.getElementById('infoCategory').textContent}.jpg`;
+            link.href = canvas.toDataURL('image/jpeg', 0.9);
+            link.click();
+        }
+
+        // Función para generar lote completo
+        async function generateBatchCards() {
+            const selectedCategory = document.getElementById('batchCategory').value;
+            const format = document.getElementById('batchFormat').value;
+            
+            // Filtrar participantes por categoría
+            const participantesCategoria = participantes.filter(p => p.categoria === selectedCategory);
+            
+            if (participantesCategoria.length === 0) {
+                alert('No hay participantes en esta categoría');
+                return;
+            }
+
+            // Obtener configuración actual
+            const categoryX = document.getElementById('categoryX').value;
+            const categoryY = document.getElementById('categoryY').value;
+            const numberX = document.getElementById('numberX').value;
+            const numberY = document.getElementById('numberY').value;
+            const categoryFontSize = document.getElementById('categoryFontSize').value;
+            const numberFontSize = document.getElementById('numberFontSize').value;
+
+            // Confirmación con detalles de configuración
+            const confirmMessage = `¿Generar ${participantesCategoria.length} tarjetas para "${selectedCategory}"?\n\n` +
+                `Configuración que se aplicará:\n` +
+                `• Posición Categoría: ${categoryX}, ${categoryY}\n` +
+                `• Tamaño Categoría: ${categoryFontSize}px\n` +
+                `• Posición Número: ${numberX}, ${numberY}\n` +
+                `• Tamaño Número: ${numberFontSize}px\n` +
+                `• Formato: ${format.toUpperCase()}`;
+
+            if (!confirm(confirmMessage)) {
+                return;
+            }
+
+            // Mostrar barra de progreso
+            const progressContainer = document.getElementById('batchProgress');
+            const progressBar = document.getElementById('batchProgressBar');
+            const statusText = document.getElementById('batchStatus');
+            const batchButton = document.getElementById('batchButton');
+            
+            progressContainer.classList.remove('hidden');
+            batchButton.disabled = true;
+            batchButton.textContent = 'Generando...';
+            
+            // Crear canvas temporal para generación en lote (usar dimensiones de la imagen de fondo)
+            const tempCanvas = document.createElement('canvas');
+            const previewCanvas = document.getElementById('previewCanvas');
+            tempCanvas.width = previewCanvas.width;
+            tempCanvas.height = previewCanvas.height;
+            
+            const zip = new JSZip();
+            
+            for (let i = 0; i < participantesCategoria.length; i++) {
+                const participante = participantesCategoria[i];
+                const progress = ((i + 1) / participantesCategoria.length) * 100;
+                
+                // Actualizar progreso
+                progressBar.style.width = progress + '%';
+                statusText.textContent = `Procesando ${i + 1}/${participantesCategoria.length}: ${participante.nombre}`;
+                
+                // Generar tarjeta usando configuración actual
+                const categoryName = participante.categoria.split(' ')[0].toUpperCase();
+                generateCard(participante.numero, categoryName, tempCanvas);
+                
+                // Convertir a blob
+                const dataUrl = tempCanvas.toDataURL(`image/${format}`, 0.9);
+                const base64Data = dataUrl.split(',')[1];
+                
+                // Agregar al ZIP
+                const fileName = `${participante.numero.toString().padStart(3, '0')}_${participante.nombre.replace(/[^a-zA-Z0-9]/g, '_')}.${format}`;
+                zip.file(fileName, base64Data, {base64: true});
+                
+                // Pequeña pausa para no bloquear la UI
+                await new Promise(resolve => setTimeout(resolve, 100));
+            }
+            
+            // Generar y descargar ZIP
+            statusText.textContent = 'Generando archivo ZIP...';
+            const zipBlob = await zip.generateAsync({type: 'blob'});
+            
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(zipBlob);
+            link.download = `tarjetas_${selectedCategory.replace(/\s+/g, '_')}.zip`;
+            link.click();
+            
+            // Resetear UI
+            progressContainer.classList.add('hidden');
+            batchButton.disabled = false;
+            batchButton.textContent = '📦 Generar Lote Completo';
+            
+            alert(`¡Lote generado exitosamente! ${participantesCategoria.length} tarjetas descargadas con tu configuración personalizada.`);
+        }
+
+        // Inicializar con la imagen de fondo
+        window.onload = async function() {
+            try {
+                await loadBackgroundImage();
+                generateCard(7, 'PRINCIPIANTE');
+                updateBatchConfigSummary(); // Inicializar resumen del lote
+            } catch (error) {
+                console.error('Error al inicializar:', error);
+                // Crear fondo por defecto si hay error
+                createFallbackBackground();
+                generateCard(7, 'PRINCIPIANTE');
+                updateBatchConfigSummary(); // Inicializar resumen del lote
+            }
+        };
+    </script>
+    
+    <!-- Librería JSZip para crear archivos ZIP -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+</body>
+</html>
