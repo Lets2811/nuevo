@@ -680,45 +680,34 @@ app.post('/registrar-llegada', async (req, res) => {
 
 app.get('/api/llegadas', async (req, res) => {
     try {
-        const { activo = true, limite = 100, pagina = 1, ordenar = 'tiempo' } = req.query;
-        
+        const { ordenar = 'tiempo' } = req.query;
+
         // Obtener todas las llegadas y salidas activas
         const llegadas = await Llegada.find();
         const salidas = await Salida.find();
-        
-        // Crear un mapa de salidas por participanteId para búsqueda rápida
+
         const salidasMap = {};
         salidas.forEach(salida => {
             salidasMap[salida.participanteId] = salida;
         });
-        
-        // Combinar datos y calcular tiempos
+
         const resultados = [];
-        
+
         llegadas.forEach(llegada => {
             const salida = salidasMap[llegada.participanteId];
-            
             if (salida) {
-                // Extraer timestamps
                 const timestampSalida = new Date(salida.horaSalida).getTime();
                 const timestampLlegada = new Date(llegada.horaLlegada).getTime();
-                
-                // Calcular tiempo transcurrido en milisegundos
                 const tiempoMs = timestampLlegada - timestampSalida;
-                
-                // Convertir a formato legible (opcional)
+
                 const tiempoSegundos = Math.floor(tiempoMs / 1000);
                 const horas = Math.floor(tiempoSegundos / 3600);
                 const minutos = Math.floor((tiempoSegundos % 3600) / 60);
                 const segundos = tiempoSegundos % 60;
-                
+
                 const tiempoFormateado = `${horas.toString().padStart(2, '0')}:${minutos.toString().padStart(2, '0')}:${segundos.toString().padStart(2, '0')}`;
-                
-                // Formatear horas de salida y llegada
-                const fechaSalida = new Date(timestampSalida);
-                const fechaLlegada = new Date(timestampLlegada);
-                
-                const salidaFormateada = fechaSalida.toLocaleString('es-CO', {
+
+                const salidaFormateada = new Date(timestampSalida).toLocaleString('es-CO', {
                     day: '2-digit',
                     month: '2-digit',
                     year: 'numeric',
@@ -727,8 +716,8 @@ app.get('/api/llegadas', async (req, res) => {
                     second: '2-digit',
                     hour12: false
                 });
-                
-                const llegadaFormateada = fechaLlegada.toLocaleString('es-CO', {
+
+                const llegadaFormateada = new Date(timestampLlegada).toLocaleString('es-CO', {
                     day: '2-digit',
                     month: '2-digit',
                     year: 'numeric',
@@ -737,60 +726,49 @@ app.get('/api/llegadas', async (req, res) => {
                     second: '2-digit',
                     hour12: false
                 });
-                
+
                 resultados.push({
                     participanteId: llegada.participanteId,
                     nombre: llegada.nombre,
                     categoria: llegada.categoria,
                     salida: timestampSalida,
                     llegada: timestampLlegada,
-                    salidaFormateada: salidaFormateada,
-                    llegadaFormateada: llegadaFormateada,
-                    tiempo: tiempoMs, // tiempo en milisegundos
-                    tiempoFormateado: tiempoFormateado, // tiempo en formato HH:MM:SS
+                    salidaFormateada,
+                    llegadaFormateada,
+                    tiempo: tiempoMs,
+                    tiempoFormateado,
                     numeroSalida: salida.numeroSalida,
                     numeroLlegada: llegada.numeroLlegada
                 });
             }
         });
-        
+
         // Ordenar resultados
-        let resultadosOrdenados = [...resultados];
         switch (ordenar) {
             case 'tiempo':
-                resultadosOrdenados.sort((a, b) => a.tiempo - b.tiempo);
+                resultados.sort((a, b) => a.tiempo - b.tiempo);
                 break;
             case 'nombre':
-                resultadosOrdenados.sort((a, b) => a.nombre.localeCompare(b.nombre));
+                resultados.sort((a, b) => a.nombre.localeCompare(b.nombre));
                 break;
             case 'numeroLlegada':
-                resultadosOrdenados.sort((a, b) => a.numeroLlegada - b.numeroLlegada);
+                resultados.sort((a, b) => a.numeroLlegada - b.numeroLlegada);
                 break;
             case 'categoria':
-                resultadosOrdenados.sort((a, b) => a.categoria.localeCompare(b.categoria));
+                resultados.sort((a, b) => a.categoria.localeCompare(b.categoria));
                 break;
-            default:
-                resultadosOrdenados.sort((a, b) => a.tiempo - b.tiempo);
         }
-        
-        // Aplicar paginación
-        const inicio = (parseInt(pagina) - 1) * parseInt(limite);
-        const fin = inicio + parseInt(limite);
-        const resultadosPaginados = resultadosOrdenados.slice(inicio, fin);
-        
-        // Respuesta
+
+        // No se aplica paginación, se devuelven todos
         res.json({
             success: true,
-            data: resultadosPaginados,
+            data: resultados,
             meta: {
                 total: resultados.length,
-                pagina: parseInt(pagina),
-                limite: parseInt(limite),
-                totalPaginas: Math.ceil(resultados.length / parseInt(limite)),
-                ordenar: ordenar
+                ordenar
             }
         });
-        
+
     } catch (error) {
         console.error('💥 Error al obtener llegadas:', error);
         res.status(500).json({ 
@@ -799,6 +777,7 @@ app.get('/api/llegadas', async (req, res) => {
         });
     }
 });
+
 // ===== API DE TIEMPOS =====
 // ===== RUTAS SIMPLIFICADAS PARA TIEMPOS COMPLETADOS =====
 
