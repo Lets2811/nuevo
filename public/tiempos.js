@@ -127,6 +127,54 @@ function capturarTabla() {
     }, 100); // pequeño delay para que el DOM tenga tiempo de aplicar los estilos
   }
   
+  function capturarTablaMobile() {
+    const tabla = document.querySelector('.times-table');
+    const tablaContainer = document.getElementById('tableContainer');
+  
+    if (!tabla) {
+      alert('No se encontró la tabla');
+      return;
+    }
+  
+    // Guardar estilo original
+    const estiloOriginal = tablaContainer.style.maxHeight;
+    const overflowOriginal = tablaContainer.style.overflow;
+  
+    // Expandir sin scroll
+    tablaContainer.style.maxHeight = 'none';
+    tablaContainer.style.overflow = 'visible';
+  
+    // Esperar pequeño delay para que DOM se actualice
+    setTimeout(() => {
+      html2canvas(tabla).then(canvas => {
+        // Restaurar estilos
+        tablaContainer.style.maxHeight = estiloOriginal;
+        tablaContainer.style.overflow = overflowOriginal;
+  
+        const imageData = canvas.toDataURL('image/png');
+  
+        // Detectar si es móvil
+        const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+  
+        if (isMobile) {
+          // Abrir imagen en nueva pestaña
+          const nuevaVentana = window.open();
+          if (nuevaVentana) {
+            nuevaVentana.document.write(`<img src="${imageData}" style="width:100%;"/>`);
+          } else {
+            alert('Por favor, permite ventanas emergentes para ver la imagen');
+          }
+        } else {
+          // Forzar descarga en escritorio
+          const link = document.createElement('a');
+          link.download = 'tiempos_completados.png';
+          link.href = imageData;
+          link.click();
+        }
+      });
+    }, 100);
+  }
+  
   
 
 // Aplicar filtro por categoría
