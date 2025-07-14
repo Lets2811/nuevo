@@ -94,6 +94,43 @@ function actualizarFiltrosCategorias() {
     }
 }
 
+function descargarTablaComoZip() {
+    const tabla = document.querySelector('.times-table');
+    const tablaContainer = document.getElementById('tableContainer');
+  
+    if (!tabla) {
+      alert('No se encontró la tabla');
+      return;
+    }
+  
+    const estiloOriginal = tablaContainer.style.maxHeight;
+    const overflowOriginal = tablaContainer.style.overflow;
+  
+    tablaContainer.style.maxHeight = 'none';
+    tablaContainer.style.overflow = 'visible';
+  
+    setTimeout(() => {
+      html2canvas(tabla).then(canvas => {
+        tablaContainer.style.maxHeight = estiloOriginal;
+        tablaContainer.style.overflow = overflowOriginal;
+  
+        const imageData = canvas.toDataURL('image/png');
+  
+        // Convertir la imagen base64 a blob
+        fetch(imageData)
+          .then(res => res.blob())
+          .then(blob => {
+            const zip = new JSZip();
+            zip.file('tabla_tiempos.png', blob);
+  
+            zip.generateAsync({ type: 'blob' }).then(function(content) {
+              saveAs(content, 'tiempos_completados.zip');
+            });
+          });
+      });
+    }, 100);
+  }
+  
 function capturarTabla() {
     const tabla = document.querySelector('.times-table');
     const tablaContainer = document.getElementById('tableContainer');

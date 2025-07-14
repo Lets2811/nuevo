@@ -6,6 +6,10 @@
   <title>Tiempos Generales</title>
   <link rel="stylesheet" href="mobile-scan.css" />
   <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+
   <style>
     /* Estilos específicos para la vista de tiempos */
     .filters-section {
@@ -315,8 +319,7 @@
         <button onclick="debugTiempos()" class="btn btn-secondary" style="margin-left: 10px;">
           🐛 Debug
         </button>-->
-        <button onclick="capturarTabla()" class="btn btn-secondary">📸 Capturar Tabla</button>
-        <button onclick="capturarTablaMobile()" class="btn btn-secondary">📸 Capturar Tabla (Celular)</button>
+        <button onclick="descargarTablaComoZip()" class="btn btn-secondary">📸 Capturar Tabla</button>
 
       </div>
       </div>
