@@ -94,6 +94,41 @@ function actualizarFiltrosCategorias() {
     }
 }
 
+function capturarTabla() {
+    const tabla = document.querySelector('.times-table');
+    const tablaContainer = document.getElementById('tableContainer');
+  
+    if (!tabla) {
+      alert('No se encontró la tabla');
+      return;
+    }
+  
+    // 1. Guardar estilo original
+    const estiloOriginal = tablaContainer.style.maxHeight;
+    const overflowOriginal = tablaContainer.style.overflow;
+  
+    // 2. Expandir sin scroll
+    tablaContainer.style.maxHeight = 'none';
+    tablaContainer.style.overflow = 'visible';
+  
+    // 3. Esperar un pequeño delay para que el DOM se actualice
+    setTimeout(() => {
+      html2canvas(tabla).then(canvas => {
+        // 4. Restaurar estilo original
+        tablaContainer.style.maxHeight = estiloOriginal;
+        tablaContainer.style.overflow = overflowOriginal;
+  
+        // 5. Descargar imagen
+        const link = document.createElement('a');
+        link.download = 'tiempos_completados.png';
+        link.href = canvas.toDataURL('image/png');
+        link.click();
+      });
+    }, 100); // pequeño delay para que el DOM tenga tiempo de aplicar los estilos
+  }
+  
+  
+
 // Aplicar filtro por categoría
 // Aplicar filtro por categoría - SOLO REEMPLAZA ESTA FUNCIÓN
 function aplicarFiltroCategoria() {
