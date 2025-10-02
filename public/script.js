@@ -309,10 +309,11 @@ function procesarDatosExcel(rawData) {
 
     // Buscar columnas requeridas
     const numeroCol = encontrarColumna(headers, ['numero', 'número', 'num', '#']);
-    const nombreCol = encontrarColumna(headers, ['nombre', 'name', 'participante']);
+    const nombreP1Col = encontrarColumna(headers, ['nombre', 'name', 'participante 1']);
+    const nombreP2Col = encontrarColumna(headers, ['nombre', 'name', 'participante 2']);
     const categoriaCol = encontrarColumna(headers, ['categoria', 'categoría', 'category', 'cat']);
 
-    if (numeroCol === -1 || nombreCol === -1 || categoriaCol === -1) {
+    if (numeroCol === -1 || nombreP1Col === -1 || categoriaCol === -1 || nombreP2Col === -1) {
         mostrarNotificacion('❌ El archivo debe tener columnas: Número, Nombre, Categoría', 'error');
         return;
     }
@@ -325,13 +326,16 @@ function procesarDatosExcel(rawData) {
         }
 
         const numero = row[numeroCol]?.toString().trim();
-        const nombre = row[nombreCol]?.toString().trim();
+        const nombreP1 = row[nombreP1Col]?.toString().trim();
+        const nombreP2 = row[nombreP2Col]?.toString().trim();
         const categoria = row[categoriaCol]?.toString().trim();
 
+        console.log(`Fila ${index + 2}:`, { numero, nombreP1, nombreP2, categoria });
         datosExcel.push({
             fila: index + 2, // +2 porque empezamos desde la fila 2 (1 es header)
             numero,
-            nombre,
+            nombreP1,
+            nombreP2,
             categoria,
             valido: false,
             errores: []
@@ -379,10 +383,18 @@ function validarDatos() {
         }
 
         // Validar nombre
-        if (!item.nombre || item.nombre === '') {
-            item.errores.push('Nombre requerido');
+        if (!item.nombreP1 || item.nombreP1 === '') {
+            item.errores.push('Nombre participante 1 requerido');
             item.valido = false;
-        } else if (item.nombre.length < 2) {
+        } else if (item.nombreP1.length < 2) {
+            item.errores.push('Nombre muy corto');
+            item.valido = false;
+        }
+
+          if (!item.nombreP2 || item.nombreP2 === '') {
+            item.errores.push('Nombre participante 2 requerido');
+            item.valido = false;
+        } else if (item.nombreP2.length < 2) {
             item.errores.push('Nombre muy corto');
             item.valido = false;
         }
@@ -429,12 +441,13 @@ function mostrarVistaPrevia() {
     
     registrosAMostrar.forEach(item => {
         const row = document.createElement('tr');
+        const nombresParejas = item.nombreP2 ? `${item.nombreP1} & ${item.nombreP2}` : item.nombreP1;
         row.className = item.valido ? 'success' : 'error';
-        
+        console.log('Mostrando fila:', item);
         row.innerHTML = `
             <td><span class="status-icon">${item.valido ? '✅' : '❌'}</span></td>
             <td>${item.numero || 'N/A'}</td>
-            <td>${item.nombre || 'N/A'}</td>
+            <td>${nombresParejas || 'N/A'}</td>
             <td>${item.categoria || 'N/A'}</td>
         `;
         
@@ -507,6 +520,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
         const total = datosValidados.length;
 
+        console.log('datos validados a procesar:', datosValidados);
         // Procesar uno por uno para mostrar progreso
         for (const participante of datosValidados) {
             try {
@@ -515,7 +529,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     headers: {
                         'Content-Type': 'application/x-www-form-urlencoded',
                     },
-                    body: `numero=${encodeURIComponent(participante.numero)}&nombre=${encodeURIComponent(participante.nombre)}&categoria=${encodeURIComponent(participante.categoria)}`
+                    body: `numero=${encodeURIComponent(participante.numero)}&nombrep1=${encodeURIComponent(participante.nombreP1)}&nombrep2=${encodeURIComponent(participante.nombreP2)}&categoria=${encodeURIComponent(participante.categoria)}`
                 });
 
                 const data = await response.json();
@@ -654,11 +668,9 @@ function cancelarCarga() {
 function descargarPlantilla() {
     // Crear datos de ejemplo
     const datosEjemplo = [
-        ['Número', 'Nombre', 'Categoría'],
-        [1, 'Juan Pérez', 'Principiante Masculino'],
-        [2, 'María García', 'Intermedio Femenino'],
-        [3, 'Carlos López', 'Avanzado Masculino'],
-        [4, 'Ana Martínez', 'Principiante Femenino']
+        ['Número', 'NombreP1', 'NombreP2', 'Categoría'],
+        [1, 'Juan Pérez', 'Felipe Jimenez', 'Principiante Masculino'],
+        [2, 'Juanita Pérez', 'Rosita Jimenez', 'Principiante Masculino'],
     ];
 
     // Crear libro de Excel

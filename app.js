@@ -112,8 +112,12 @@ app.post('/registrar', async (req, res) => {
 
         res.json(response);
     } catch (error) {
+
+        if(error.errorResponse.errmsg.includes('duplicate key error collection')){
+            msg = `El número ${numero} ya está registrado. Prueba con otro diferente.`
+        }
         console.error('💥 Error al registrar participante o generar QR:', error);
-        res.status(500).json({ error: 'Error al registrar participante' });
+        res.status(500).json({ error: msg });
     }
 });
 
