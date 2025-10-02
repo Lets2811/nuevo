@@ -213,8 +213,6 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
     
-    
-
     async function descargarQR(qrUrl, nombre, mostrarMensaje = true) {
         try {
             const response = await fetch(qrUrl);

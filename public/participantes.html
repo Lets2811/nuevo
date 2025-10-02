@@ -704,7 +704,6 @@
                             <th>Número</th>
                             <th>Categoría</th>
                             <th>Nombre</th>
-                            <th>Talla</th>
                         </tr>
                     </thead>
                     <tbody id="tableBody">
@@ -752,167 +751,41 @@
 
     <script>
         // Datos de los participantes organizados por categoría
-        const participantes = [
-            // Principiante Masculino (001-044)
-            {numero: 1, categoria: "Principiante Masculino", nombre: "Yeison Felipe Ortiz Agredo", talla: "L"},
-            {numero: 2, categoria: "Principiante Masculino", nombre: "Ary Jose Ordóñez", talla: "L"},
-            {numero: 3, categoria: "Principiante Masculino", nombre: "Wilson Ortega", talla: "L"},
-            {numero: 4, categoria: "Principiante Masculino", nombre: "Brayan Devia", talla: "M"},
-            {numero: 5, categoria: "Principiante Masculino", nombre: "Maicol Muñoz", talla: "L"},
-            {numero: 6, categoria: "Principiante Masculino", nombre: "David Prado", talla: "M"},
-            {numero: 7, categoria: "Principiante Masculino", nombre: "Daniel Osorio", talla: "L"},
-            {numero: 8, categoria: "Principiante Masculino", nombre: "Kevin Daniel Ramos", talla: "L"},
-            {numero: 9, categoria: "Principiante Masculino", nombre: "Fabián Martínez", talla: "L"},
-            {numero: 10, categoria: "Principiante Masculino", nombre: "Angel Pame", talla: "L"},
-            {numero: 11, categoria: "Principiante Masculino", nombre: "Pedro Alegria", talla: "M"},
-            {numero: 12, categoria: "Principiante Masculino", nombre: "Juan José Zúñiga", talla: "M"},
-            {numero: 13, categoria: "Principiante Masculino", nombre: "Kevin Adrián Moreno", talla: "L"},
-            {numero: 14, categoria: "Principiante Masculino", nombre: "Christian Camilo Rivera", talla: "L"},
-            {numero: 15, categoria: "Principiante Masculino", nombre: "Andrés Felipe Ramírez", talla: "L"},
-            {numero: 16, categoria: "Principiante Masculino", nombre: "Carlos Enrique", talla: "XL"},
-            {numero: 17, categoria: "Principiante Masculino", nombre: "Jhon Michael Lemos", talla: "M"},
-            {numero: 18, categoria: "Principiante Masculino", nombre: "James Cadena", talla: "L"},
-            {numero: 19, categoria: "Principiante Masculino", nombre: "Julián Ortega", talla: "M"},
-            {numero: 20, categoria: "Principiante Masculino", nombre: "Camilo Chávez", talla: "M"},
-            {numero: 21, categoria: "Principiante Masculino", nombre: "Juan Guillermo Solano", talla: "M"},
-            {numero: 22, categoria: "Principiante Masculino", nombre: "Daniel Felipe Bedoya", talla: "M"},
-            {numero: 23, categoria: "Principiante Masculino", nombre: "Andrés Molina", talla: "XL"},
-            {numero: 24, categoria: "Principiante Masculino", nombre: "Esteban Muñoz", talla: "L"},
-            {numero: 25, categoria: "Principiante Masculino", nombre: "Andrés Pomeo", talla: "XL"},
-            {numero: 26, categoria: "Principiante Masculino", nombre: "Danilo Chamorro", talla: "M"},
-            {numero: 27, categoria: "Principiante Masculino", nombre: "Angelo Camilo", talla: "M"},
-            {numero: 28, categoria: "Principiante Masculino", nombre: "Fernando Pérez", talla: "M"},
-            {numero: 29, categoria: "Principiante Masculino", nombre: "Angel Benavides", talla: "S"},
-            {numero: 30, categoria: "Principiante Masculino", nombre: "Fernando Pérez", talla: "M"},
-            {numero: 31, categoria: "Principiante Masculino", nombre: "Sebastián Minota", talla: "M"},
-            {numero: 32, categoria: "Principiante Masculino", nombre: "Ismael Sandoval", talla: "L"},
-            {numero: 33, categoria: "Principiante Masculino", nombre: "Peter Mena", talla: "XL"},
-            {numero: 34, categoria: "Principiante Masculino", nombre: "Juan Pablo", talla: "L"},
-            {numero: 35, categoria: "Principiante Masculino", nombre: "Jhan Carlos Sánchez", talla: "L"},
-            {numero: 36, categoria: "Principiante Masculino", nombre: "Nicolás Santacruz", talla: "M"},
-            {numero: 37, categoria: "Principiante Masculino", nombre: "Jhonatan Meneses", talla: "XL"},
-            {numero: 38, categoria: "Principiante Masculino", nombre: "Juan Meneses", talla: "L"},
-            {numero: 39, categoria: "Principiante Masculino", nombre: "Jhonatan Paniagua", talla: "M"},
-            {numero: 40, categoria: "Principiante Masculino", nombre: "Jesús López", talla: "M"},
-            {numero: 41, categoria: "Principiante Masculino", nombre: "Ronaldo Bolaños", talla: "M"},
-            {numero: 42, categoria: "Principiante Masculino", nombre: "Rosember Angucho", talla: "XS"},
-            {numero: 43, categoria: "Principiante Masculino", nombre: "Duvan Felipe Armero", talla: "M"},
-            {numero: 44, categoria: "Principiante Masculino", nombre: "Cristian Galagarra", talla: "M"},
-            
-            // Intermedio Masculino (045-064)
-            {numero: 45, categoria: "Intermedio Masculino", nombre: "Junior López", talla: "S"},
-            {numero: 46, categoria: "Intermedio Masculino", nombre: "Johan Betancourt", talla: "M"},
-            {numero: 47, categoria: "Intermedio Masculino", nombre: "Emerson Sánchez", talla: "L"},
-            {numero: 48, categoria: "Intermedio Masculino", nombre: "Santiago Quintero", talla: "M"},
-            {numero: 49, categoria: "Intermedio Masculino", nombre: "Óscar David Enrique", talla: "M"},
-            {numero: 50, categoria: "Intermedio Masculino", nombre: "Daniel Felipe Parra", talla: "M"},
-            {numero: 51, categoria: "Intermedio Masculino", nombre: "Luis Miguel Aguirre", talla: "L"},
-            {numero: 52, categoria: "Intermedio Masculino", nombre: "Edwin Gironza", talla: "L"},
-            {numero: 53, categoria: "Intermedio Masculino", nombre: "Antonio Cuasquer", talla: "L"},
-            {numero: 54, categoria: "Intermedio Masculino", nombre: "Duvan Ramos", talla: "L"},
-            {numero: 55, categoria: "Intermedio Masculino", nombre: "Yojan Pillimue", talla: "M"},
-            {numero: 56, categoria: "Intermedio Masculino", nombre: "Diego Casanova", talla: "M"},
-            {numero: 57, categoria: "Intermedio Masculino", nombre: "Daniel Samboni", talla: "XL"},
-            {numero: 58, categoria: "Intermedio Masculino", nombre: "Walter Iván Guamanga", talla: "XL"},
-            {numero: 59, categoria: "Intermedio Masculino", nombre: "Alex Troyano", talla: "M"},
-            {numero: 60, categoria: "Intermedio Masculino", nombre: "Julián David Pacue", talla: "L"},
-            {numero: 61, categoria: "Intermedio Masculino", nombre: "David Ulabarry", talla: "L"},
-            {numero: 62, categoria: "Intermedio Masculino", nombre: "Arnol Sanchez", talla: "M"},
-            {numero: 63, categoria: "Intermedio Masculino", nombre: "Juan Felipe Burbano", talla: "M"},
-            {numero: 64, categoria: "Intermedio Masculino", nombre: "Coach Duvan", talla: "L"},
-            {numero: 143, categoria: "Intermedio Masculino", nombre: "Alejandro San", talla: "L"},
+        const API_URL = '/api/participantes';
 
-            // Avanzado Masculino (065-079)
-            {numero: 65, categoria: "Avanzado Masculino", nombre: "Cristhian Betancourth", talla: "L"},
-            {numero: 66, categoria: "Avanzado Masculino", nombre: "John Edison Solarte", talla: "M"},
-            {numero: 67, categoria: "Avanzado Masculino", nombre: "Cristhian Valencia", talla: "XL"},
-            {numero: 68, categoria: "Avanzado Masculino", nombre: "Jhonatan Ordóñez", talla: "L"},
-            {numero: 69, categoria: "Avanzado Masculino", nombre: "Yeiko", talla: "L"},
-            {numero: 70, categoria: "Avanzado Masculino", nombre: "Brayan Stiven Muñoz", talla: "M"},
-            {numero: 71, categoria: "Avanzado Masculino", nombre: "Fretman Vargas", talla: "M"},
-            {numero: 72, categoria: "Avanzado Masculino", nombre: "Jonathan Hernández", talla: "L"},
-            {numero: 73, categoria: "Avanzado Masculino", nombre: "Daniel San", talla: "L"},
-            {numero: 74, categoria: "Avanzado Masculino", nombre: "Cristian Vinasco", talla: "M"},
-            {numero: 75, categoria: "Avanzado Masculino", nombre: "Daniel Gómez", talla: "M"},
-            {numero: 76, categoria: "Avanzado Masculino", nombre: "Jhojan Santacruz", talla: "L"},
-            {numero: 77, categoria: "Avanzado Masculino", nombre: "Giovanni Bolaños", talla: "L"},
-            {numero: 78, categoria: "Avanzado Masculino", nombre: "Andrés Chagüendo", talla: "XL"},
-            {numero: 79, categoria: "Avanzado Masculino", nombre: "James Campo", talla: "L"},
-            
-            // Principiante Femenino (080-130)
-            {numero: 80, categoria: "Principiante Femenino", nombre: "Lenny Paola Rojas Bolaños", talla: "S"},
-            {numero: 81, categoria: "Principiante Femenino", nombre: "Ana Lucia Bravo Lopez", talla: "XS"},
-            {numero: 82, categoria: "Principiante Femenino", nombre: "María Alejandra Vivas", talla: "M"},
-            {numero: 83, categoria: "Principiante Femenino", nombre: "Liliana Ruiz", talla: "M"},
-            {numero: 84, categoria: "Principiante Femenino", nombre: "Valentina Mendez Agredo", talla: "M"},
-            {numero: 85, categoria: "Principiante Femenino", nombre: "Anny Yazmin Buitron", talla: "M"},
-            {numero: 86, categoria: "Principiante Femenino", nombre: "Angela Maria Possos Hernandez", talla: "M"},
-            {numero: 87, categoria: "Principiante Femenino", nombre: "Carmen Cuetia", talla: "M"},
-            {numero: 88, categoria: "Principiante Femenino", nombre: "Vanesa Anaya", talla: "M"},
-            {numero: 89, categoria: "Principiante Femenino", nombre: "Keren Yireth Sánchez", talla: "M"},
-            {numero: 90, categoria: "Principiante Femenino", nombre: "Yulieth Valentina López", talla: "S"},
-            {numero: 91, categoria: "Principiante Femenino", nombre: "Angelica Andrea Realpe", talla: "M"},
-            {numero: 92, categoria: "Principiante Femenino", nombre: "Giselle Palomino", talla: "M"},
-            {numero: 93, categoria: "Principiante Femenino", nombre: "Denyi Lorena López", talla: "M"},
-            {numero: 94, categoria: "Principiante Femenino", nombre: "Isa Roberto", talla: "XS"},
-            {numero: 95, categoria: "Principiante Femenino", nombre: "Nilce Hernández", talla: "L"},
-            {numero: 96, categoria: "Principiante Femenino", nombre: "Patricia Hoyos", talla: "S"},
-            {numero: 97, categoria: "Principiante Femenino", nombre: "Diana Hoyos", talla: "S"},
-            {numero: 98, categoria: "Principiante Femenino", nombre: "Maye Peña", talla: "S"},
-            {numero: 99, categoria: "Principiante Femenino", nombre: "Viviana Paredes", talla: "M"},
-            {numero: 100, categoria: "Principiante Femenino", nombre: "Meliza López", talla: "S"},
-            {numero: 101, categoria: "Principiante Femenino", nombre: "Ana Lucía Rodríguez", talla: "L"},
-            {numero: 102, categoria: "Principiante Femenino", nombre: "Karol Viviana Quiñones", talla: "L"},
-            {numero: 103, categoria: "Principiante Femenino", nombre: "Lisbet Joaqui", talla: "S"},
-            {numero: 104, categoria: "Principiante Femenino", nombre: "Lina Peña Marín", talla: "M"},
-            {numero: 105, categoria: "Principiante Femenino", nombre: "Lizeth Mellizo", talla: "M"},
-            {numero: 106, categoria: "Principiante Femenino", nombre: "María Isabel Correa", talla: "S"},
-            {numero: 107, categoria: "Principiante Femenino", nombre: "Fanny Gutiérrez", talla: "M"},
-            {numero: 108, categoria: "Principiante Femenino", nombre: "Angelica Ledesma", talla: "M"},
-            {numero: 109, categoria: "Principiante Femenino", nombre: "Alba Palmito", talla: "L"},
-            {numero: 110, categoria: "Principiante Femenino", nombre: "María José Fuertes", talla: "M"},
-            {numero: 111, categoria: "Principiante Femenino", nombre: "Alexandra Salamanca", talla: "L"},
-            {numero: 112, categoria: "Principiante Femenino", nombre: "Luisa Pedroza", talla: "M"},
-            {numero: 113, categoria: "Principiante Femenino", nombre: "Diana Samboni", talla: "S"},
-            {numero: 114, categoria: "Principiante Femenino", nombre: "Valentina Franco", talla: "S"},
-            {numero: 115, categoria: "Principiante Femenino", nombre: "María Yeni Pulido", talla: "M"},
-            {numero: 116, categoria: "Principiante Femenino", nombre: "Yuri Stefany Pacue", talla: "S"},
-            {numero: 117, categoria: "Principiante Femenino", nombre: "Evelin Velasco", talla: "S"},
-            {numero: 118, categoria: "Principiante Femenino", nombre: "Dayana Velasco", talla: "M"},
-            {numero: 119, categoria: "Principiante Femenino", nombre: "Claudia Girón", talla: "M"},
-            {numero: 120, categoria: "Principiante Femenino", nombre: "Daniela Hoyos Benítez", talla: "M"},
-            {numero: 121, categoria: "Principiante Femenino", nombre: "Yurani Chilito", talla: "M"},
-            {numero: 122, categoria: "Principiante Femenino", nombre: "Laura Sánchez", talla: "M"},
-            {numero: 123, categoria: "Principiante Femenino", nombre: "Daniela Chilito", talla: "M"},
-            {numero: 124, categoria: "Principiante Femenino", nombre: "Viviana Vejarano", talla: "S"},
-            {numero: 125, categoria: "Principiante Femenino", nombre: "Daniela Muñoz", talla: "S"},
-            {numero: 126, categoria: "Principiante Femenino", nombre: "Catalina Popo Salazar", talla: "XS"},
-            {numero: 127, categoria: "Principiante Femenino", nombre: "Ximena Rosero", talla: "S"},
-            {numero: 128, categoria: "Principiante Femenino", nombre: "Tatiana Cerón", talla: "L"},
-            {numero: 129, categoria: "Principiante Femenino", nombre: "Gina Navia", talla: "M"},
-            {numero: 130, categoria: "Principiante Femenino", nombre: "Juliana Martínez", talla: "S"},
-            
-            // Intermedio Femenino (131-139)
-            {numero: 131, categoria: "Intermedio Femenino", nombre: "Yerly Pino", talla: "M"},
-            {numero: 132, categoria: "Intermedio Femenino", nombre: "Sofía Rendón", talla: "S"},
-            {numero: 133, categoria: "Intermedio Femenino", nombre: "Melisa Trejos", talla: "M"},
-            {numero: 134, categoria: "Intermedio Femenino", nombre: "Yessenia Ruiz Pérez", talla: "M"},
-            {numero: 135, categoria: "Intermedio Femenino", nombre: "Lorena Troyano", talla: "S"},
-            {numero: 136, categoria: "Intermedio Femenino", nombre: "Sandra Muñoz", talla: "L"},
-            {numero: 137, categoria: "Intermedio Femenino", nombre: "Dayana Cando Díaz", talla: "S"},
-            {numero: 138, categoria: "Intermedio Femenino", nombre: "Lina Morales", talla: "M"},
-            {numero: 139, categoria: "Intermedio Femenino", nombre: "Gisell Tovar", talla: "M"},
-            
-            // Avanzado Femenino (140-141)
-            {numero: 140, categoria: "Avanzado Femenino", nombre: "Valentina Balcázar", talla: "S"},
-            {numero: 141, categoria: "Avanzado Femenino", nombre: "Karen Sarria", talla: "M"},
-            {numero: 142, categoria: "Avanzado Femenino", nombre: "Sakura", talla: "M"}
-        ];
+  // Estado global
+        console.log('HELLLLOOOOOOOOOOO')
 
         // Variables globales para filtros
+        let participantes = [];
         let filteredParticipants = [...participantes];
         let currentSearchTerm = '';
         let currentCategoryFilter = '';
+
+        async function cargarParticipantes() {
+            console.log('HOLAAAAAAAAAAaaA')
+    try {
+      const res = await fetch(API_URL, { headers: { 'Accept': 'application/json' } });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const data = await res.json();
+
+      // La API responde { participantes: [...] }
+      participantes = (data?.participantes ?? []).map(p => ({
+        numero: p?.numero ?? '',
+        categoria: p?.categoria ?? '',
+        nombre: p?.nombre ?? '',
+        talla: p?.talla ?? ''
+      }));
+      filteredParticipants = [...participantes];
+
+      // Render inicial y listeners
+      populateTable(participantes);
+      setupEventListeners();
+    } catch (err) {
+      console.error('Error al cargar participantes:', err);
+      alert('❌ No se pudieron cargar los participantes');
+    }
+  }
 
         // Llenar la tabla con los datos (modificada para usar datos filtrados)
         function populateTable(dataToShow = participantes) {
@@ -1095,6 +968,7 @@
         window.onload = function() {
             populateTable();
             setupEventListeners();
+            cargarParticipantes();
         };
     </script>
 </body>

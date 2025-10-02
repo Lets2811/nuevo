@@ -38,20 +38,28 @@
                 <div class="form-group">
                     <label for="numero">
                         <span class="label-icon">🔢</span>
-                        Número del Participante:
+                        Pareja Número:
                     </label>
                     <input type="number" id="numero" name="numero" required placeholder="Ej: 001, 100, 250" min="1">
                     <small class="field-hint">Este número aparecerá en el dorsal del participante</small>
                 </div>
-
+<br>
                 <div class="form-group">
-                    <label for="nombre">
+                    <label for="nombre_p1">
                         <span class="label-icon">👤</span>
-                        Nombre del Participante:
+                        Nombre del Participante 1:
                     </label>
-                    <input type="text" id="nombre" name="nombre" required placeholder="Ingresa el nombre completo">
+                    <input type="text" id="nombre_p1" name="nombre_p1" required placeholder="Ingresa el nombre completo">
                 </div>
-
+<br>
+                                <div class="form-group">
+                    <label for="nombre_p2">
+                        <span class="label-icon">👤</span>
+                        Nombre del Participante 2:
+                    </label>
+                    <input type="text" id="nombre_p2" name="nombre_p2" required placeholder="Ingresa el nombre completo">
+                </div>
+<br>    
                 <div class="form-group">
                     <label for="categoria">
                         <span class="label-icon">🏆</span>
@@ -60,10 +68,8 @@
                     <select id="categoria" name="categoria" required>
                         <option value="">🔽 Seleccione categoría</option>
                         <option value="Principiante Femenino">🟢 Principiante Femenino</option>
-                        <option value="Intermedio Femenino">🟡 Intermedio Femenino</option>
                         <option value="Avanzado Femenino">🔴 Avanzado Femenino</option>
                         <option value="Principiante Masculino">🟢 Principiante Masculino</option>
-                        <option value="Intermedio Masculino">🟡 Intermedio Masculino</option>
                         <option value="Avanzado Masculino">🔴 Avanzado Masculino</option>
                     </select>
                 </div>
@@ -167,13 +173,13 @@
                 </div>
 
                 <!-- Template Excel -->
-                <div class="template-section">
+                <!--<div class="template-section">
                     <h4>📋 Plantilla Excel</h4>
                     <p>Descarga la plantilla con el formato correcto:</p>
                     <button onclick="descargarPlantilla()" class="template-btn">
                         📥 Descargar Plantilla Excel
                     </button>
-                </div>
+                </div>-->
             </div>
         </div>
 

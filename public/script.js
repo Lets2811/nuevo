@@ -146,12 +146,13 @@ document.getElementById('registroForm').addEventListener('submit', function(e) {
     e.preventDefault();
     
     const numero = document.getElementById('numero').value.trim();
-    const nombre = document.getElementById('nombre').value.trim();
+    const nombreP1 = document.getElementById('nombre_p1').value.trim();
+    const nombreP2 = document.getElementById('nombre_p2').value.trim();
     const categoria = document.getElementById('categoria').value;
     
-    console.log('Datos del formulario:', { numero, nombre, categoria });
+    console.log('Datos del formulario:', { numero, nombreP1, nombreP2, categoria });
     
-    if (!numero || !nombre || !categoria) {
+    if (!numero || !nombreP1 || !nombreP2 || !categoria) {
         mostrarNotificacion('❌ Por favor complete todos los campos', 'error');
         return;
     }
@@ -169,14 +170,14 @@ document.getElementById('registroForm').addEventListener('submit', function(e) {
     
     setButtonState(btn, btnText, btnIcon, btnLoader, true);
     
-    console.log('Enviando datos:', { numero, nombre, categoria });
+    console.log('Enviando datos:', { numero, nombreP1, nombreP2, categoria });
     
     fetch('/registrar', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/x-www-form-urlencoded',
         },
-        body: `numero=${encodeURIComponent(numero)}&nombre=${encodeURIComponent(nombre)}&categoria=${encodeURIComponent(categoria)}`
+        body: `numero=${encodeURIComponent(numero)}&nombrep1=${encodeURIComponent(nombreP1)}&nombrep2=${encodeURIComponent(nombreP2)}&categoria=${encodeURIComponent(categoria)}`
     })
     .then(response => {
         console.log('Respuesta recibida, status:', response.status);

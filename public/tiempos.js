@@ -93,8 +93,88 @@ function actualizarFiltrosCategorias() {
         categoriaFilter.value = seleccionActual;
     }
 }
-
-function descargarTablaComoZip() {
+function obtenerNombreArchivoCategoria() {
+    const categoria = document.getElementById('categoriaFilter')?.value || 'general';
+    return categoria === 'all' ? 'todas_las_categorias' : categoria.replace(/\s+/g, '_').toLowerCase();
+  }
+  
+  function descargarTablaComoZip() {
+    const listaOriginal = document.getElementById('timesList');
+    const tablaContainer = document.getElementById('tableContainer');
+    const categoria = obtenerNombreArchivoCategoria();
+  
+    if (!listaOriginal) {
+      alert('No se encontró la lista');
+      return;
+    }
+  
+    const items = Array.from(listaOriginal.querySelectorAll('li'));
+    const estiloOriginal = tablaContainer.style.maxHeight;
+    const overflowOriginal = tablaContainer.style.overflow;
+  
+    tablaContainer.style.maxHeight = 'none';
+    tablaContainer.style.overflow = 'visible';
+  
+    const zip = new JSZip();
+    const capturas = [];
+  
+    // Crear contenedor temporal oculto
+    const tempContainer = document.createElement('div');
+    tempContainer.style.position = 'absolute';
+    tempContainer.style.top = '-9999px';
+    tempContainer.style.left = '-9999px';
+    tempContainer.style.width = listaOriginal.offsetWidth + 'px';
+    tempContainer.className = 'times-table';
+    document.body.appendChild(tempContainer);
+  
+    const chunkSize = 4;
+    const bloques = Math.ceil(items.length / chunkSize);
+  
+    const capturarBloque = (i) => {
+      return new Promise((resolve) => {
+        tempContainer.innerHTML = ''; // Limpiar
+  
+        const ul = document.createElement('ul');
+        ul.className = 'times-list';
+  
+        const bloque = items.slice(i * chunkSize, (i + 1) * chunkSize);
+        bloque.forEach(item => ul.appendChild(item.cloneNode(true)));
+  
+        tempContainer.appendChild(ul);
+  
+        // Esperar un frame para renderizar
+        requestAnimationFrame(() => {
+          html2canvas(tempContainer).then(canvas => {
+            canvas.toBlob(blob => {
+              const filename = `${categoria}_parte_${i + 1}.png`;
+              zip.file(filename, blob);
+              resolve();
+            });
+          });
+        });
+      });
+    };
+  
+    (async function () {
+      for (let i = 0; i < bloques; i++) {
+        await capturarBloque(i);
+      }
+  
+      // Eliminar contenedor temporal
+      document.body.removeChild(tempContainer);
+  
+      // Restaurar estilos
+      tablaContainer.style.maxHeight = estiloOriginal;
+      tablaContainer.style.overflow = overflowOriginal;
+  
+      // Descargar el zip
+      zip.generateAsync({ type: 'blob' }).then(content => {
+        saveAs(content, `${categoria}.zip`);
+      });
+    })();
+  }
+  
+  function capturarTabla() {
     const tabla = document.querySelector('.times-table');
     const tablaContainer = document.getElementById('tableContainer');
   
@@ -114,55 +194,15 @@ function descargarTablaComoZip() {
         tablaContainer.style.maxHeight = estiloOriginal;
         tablaContainer.style.overflow = overflowOriginal;
   
-        const imageData = canvas.toDataURL('image/png');
-  
-        // Convertir la imagen base64 a blob
-        fetch(imageData)
-          .then(res => res.blob())
-          .then(blob => {
-            const zip = new JSZip();
-            zip.file('tabla_tiempos.png', blob);
-  
-            zip.generateAsync({ type: 'blob' }).then(function(content) {
-              saveAs(content, 'tiempos_completados.zip');
-            });
-          });
+        const nombre = obtenerNombreArchivoCategoria();
+        const link = document.createElement('a');
+        link.download = `${nombre}.png`;
+        link.href = canvas.toDataURL('image/png');
+        link.click();
       });
     }, 100);
   }
   
-function capturarTabla() {
-    const tabla = document.querySelector('.times-table');
-    const tablaContainer = document.getElementById('tableContainer');
-  
-    if (!tabla) {
-      alert('No se encontró la tabla');
-      return;
-    }
-  
-    // 1. Guardar estilo original
-    const estiloOriginal = tablaContainer.style.maxHeight;
-    const overflowOriginal = tablaContainer.style.overflow;
-  
-    // 2. Expandir sin scroll
-    tablaContainer.style.maxHeight = 'none';
-    tablaContainer.style.overflow = 'visible';
-  
-    // 3. Esperar un pequeño delay para que el DOM se actualice
-    setTimeout(() => {
-      html2canvas(tabla).then(canvas => {
-        // 4. Restaurar estilo original
-        tablaContainer.style.maxHeight = estiloOriginal;
-        tablaContainer.style.overflow = overflowOriginal;
-  
-        // 5. Descargar imagen
-        const link = document.createElement('a');
-        link.download = 'tiempos_completados.png';
-        link.href = canvas.toDataURL('image/png');
-        link.click();
-      });
-    }, 100); // pequeño delay para que el DOM tenga tiempo de aplicar los estilos
-  }
   
   function capturarTablaMobile() {
     const tabla = document.querySelector('.times-table');

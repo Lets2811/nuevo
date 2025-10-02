@@ -6,6 +6,7 @@
   <title>Registrar Llegada</title>
   <link rel="stylesheet" href="mobile-scan.css" />
   <script src="https://unpkg.com/@zxing/library@latest"></script>
+  
 </head>
 <body>
   <!-- Navegación superior -->
@@ -125,6 +126,14 @@
       <p>💡 <strong>Tip:</strong> Registra la llegada tan pronto como el participante termine la carrera</p>
     </footer>
   </div>
+  <!-- Overlay de confirmación -->
+<div id="confirmationOverlay" class="confirmation-overlay hidden">
+  <div class="confirmation-content">
+    <h2>✅ Llegada registrada</h2>
+    <p>Espera unos segundos mientras se guarda la información...</p>
+  </div>
+</div>
+
 
   <!-- Usar el archivo JavaScript específico para llegadas -->
   <script src="registrarLlegada.js"></script>

@@ -40,15 +40,16 @@ app.post('/registrar', async (req, res) => {
     console.log('📦 Body recibido:', req.body);
     console.log('='.repeat(50));
 
-    const { nombre, categoria, numero } = req.body;
+    const { nombrep1, nombrep2, categoria, numero } = req.body;
 
-    if (!nombre || !categoria || !numero) {
-        console.log('❌ Faltan campos requeridos:', { nombre, categoria, numero });
+    if (!nombrep1 || !nombrep2 || !categoria || !numero) {
+        console.log('❌ Faltan campos requeridos:', { nombrep1, nombrep2, categoria, numero });
         return res.status(400).json({ error: 'Todos los campos son requeridos' });
     }
 
     try {
         // Crear y guardar el participante en MongoDB (sin QR aún)
+        const nombre = `${nombrep1} / ${nombrep2}`;
         const nuevo = new Participante({ nombre, categoria, numero, qrUrl: '' });
         await nuevo.save();
 
@@ -1483,6 +1484,9 @@ app.get('/api/tiempos-calculados', async (req, res) => {
     }
 });
 
+app.post('/test', (req, res) => {
+    res.json({ message: 'API funcionando correctamente' });
+});
 // API: Estadísticas rápidas de la carrera
 app.get('/api/estadisticas-carrera', async (req, res) => {
     try {
@@ -1563,6 +1567,29 @@ app.get('/api/estadisticas-carrera', async (req, res) => {
     }
 });
 
+// API: Obtener participantes disponibles de la carrera
+app.get('/api/participantes', async (req, res) => {
+
+    try {
+        console.log('📋 Obteniendo lista de participantes...');
+
+        const participantes
+        = await 
+            Participante.find({}, { nombre: 1, numero: 1, categoria: 1 }).sort({ numero: 1 }).lean()
+        console.log(`✅ Participantes obtenidos: ${participantes.length} registros`)  ;
+        res.status(200).json({
+            participantes
+        })
+
+    } catch (error) {
+        console.error('💥 Error al obtener participantes:', error);
+        res.status(500).json({
+            error: 'Error al obtener participantes',
+            detalles: process.env.NODE_ENV === 'development' ? error.message : undefined
+        });
+    }
+});
+
 // Función auxiliar para formatear duración en el servidor
 function formatearDuracionServer(milisegundos) {
     if (!milisegundos || milisegundos < 0) return null;
@@ -1580,8 +1607,8 @@ function formatearDuracionServer(milisegundos) {
 }
 
 console.log('⏱️ APIs de tiempos y reportes inicializadas');
-// ===== INICIAR SERVIDOR =====
 app.listen(PORT, () => {
+    console.log('===========================================', app);
     console.log(`🚀 Servidor corriendo en http://localhost:${PORT}`);
     console.log('✅ Middleware JSON configurado correctamente');
     console.log('✅ Modelo Salida importado');
