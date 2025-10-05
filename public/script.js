@@ -309,9 +309,11 @@ function procesarDatosExcel(rawData) {
 
     // Buscar columnas requeridas
     const numeroCol = encontrarColumna(headers, ['numero', 'número', 'num', '#']);
-    const nombreP1Col = encontrarColumna(headers, ['nombre', 'name', 'participante 1']);
-    const nombreP2Col = encontrarColumna(headers, ['nombre', 'name', 'participante 2']);
+    const nombreP1Col = encontrarColumna(headers, ['NombreP1', 'nombrep1']);
+    const nombreP2Col = encontrarColumna(headers, ['NombreP2', 'nombrep2']);
     const categoriaCol = encontrarColumna(headers, ['categoria', 'categoría', 'category', 'cat']);
+
+    console.log('Columnas encontradas:', { numeroCol, nombreP1Col, nombreP2Col, categoriaCol });
 
     if (numeroCol === -1 || nombreP1Col === -1 || categoriaCol === -1 || nombreP2Col === -1) {
         mostrarNotificacion('❌ El archivo debe tener columnas: Número, Nombre, Categoría', 'error');
@@ -349,6 +351,7 @@ function procesarDatosExcel(rawData) {
 function encontrarColumna(headers, posibleNombres) {
     for (let i = 0; i < headers.length; i++) {
         const header = headers[i];
+        console.log(`Revisando columna ${i}: ${header}`);
         if (posibleNombres.some(nombre => header.includes(nombre))) {
             return i;
         }
