@@ -112,8 +112,14 @@ async function processArrival(qrData, arrivalTime) {
         const participantData = parseQRData(qrData);
         if (!participantData) throw new Error('Código QR inválido');
 
-        showArrivalResult(participantData, arrivalTime);
-        registerArrivalInBackground(participantData, arrivalTime);
+       const rta = await registerArrivalInBackground(participantData, arrivalTime);
+
+       console.log('Respuesta de registro en background:', rta);
+       if (rta) {
+           showArrivalResult(participantData, arrivalTime);
+       } else {
+           throw new Error('No se pudo registrar la llegada en el servidor');
+       }
 
     } catch (error) {
         console.error('❌ Error al procesar llegada:', error);
@@ -124,6 +130,51 @@ async function processArrival(qrData, arrivalTime) {
         }, 2000);
     }
 }
+
+function getNotificationBorderColor(tipo) {
+    switch (tipo) {
+        case 'success': return '#00FF3C';
+        case 'error': return '#ff4444';
+        case 'warning': return '#FFD700';
+        default: return '#2196F3';
+    }
+}
+
+ function mostrarNotificacion(mensaje, tipo = 'info') {
+        // Remover notificaciones existentes
+        const existingNotifs = document.querySelectorAll('.notification');
+        existingNotifs.forEach(notif => notif.remove());
+        
+        // Crear nueva notificación
+        const notif = document.createElement('div');
+        notif.className = 'notification';
+        notif.style.cssText = `
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 20px;
+            background-color: #1C1C1C;
+            color: #FFFFFF;
+            border-radius: 10px;
+            z-index: 10000;
+            max-width: 300px;
+            word-wrap: break-word;
+            box-shadow: 0 6px 20px rgba(0,0,0,0.5);
+            font-weight: bold;
+            animation: slideInRight 0.3s ease;
+            border: 2px solid ${getNotificationBorderColor(tipo)};
+            font-family: Arial, sans-serif;
+        `;
+        notif.textContent = mensaje;
+        
+        document.body.appendChild(notif);
+        
+        // Auto remover después de 4 segundos
+        setTimeout(() => {
+            notif.style.animation = 'slideOutRight 0.3s ease';
+            setTimeout(() => notif.remove(), 300);
+        }, 4000);
+    }
 
 // Mostrar resultado inmediato
 function showArrivalResult(participantData, arrivalTime) {
@@ -168,11 +219,15 @@ async function registerArrivalInBackground(participantData, arrivalTime) {
 
         const data = await response.json();
 
+        console.log('Respuesta del servidor:', data);
         if (response.ok && data.success) {
             console.log('✅ Llegada guardada en BD:', data);
             showBackgroundSuccess();
+            return true
         } else {
-            throw new Error(data.error || 'Error al guardar en servidor');
+            mostrarNotificacion(`❌ Error al guardar llegada: ${data.error || 'Error desconocido'}`, 'error');
+            //throw new Error(data.error || 'Error al guardar en servidor');
+            return false;
         }
 
     } catch (error) {
