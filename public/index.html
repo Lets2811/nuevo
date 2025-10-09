@@ -1,515 +1,261 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Registro de Participantes</title>
-    <link rel="stylesheet" href="style.css">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Registro de Participantes</title>
+  <link rel="stylesheet" href="style.css"/>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 </head>
 <body>
-    <!-- Navegación superior -->
-    <nav class="top-navigation">
-        <div class="nav-links">
-            <a href="/" class="nav-btn home">🏠 Home</a>
-            <a href="/galeria" class="nav-btn gallery">🖼️ Galería QR</a>
-            <a href="/salida" class="nav-btn exit">🏃‍♂️ Registrar Salida</a>
-            <a href="/llegada" class="nav-btn arrival">🏁 Registrar Llegada</a>
-            <a href="/tiempos" class="nav-btn arrival">⏰ Tiempos</a>
-            <a href="/participantes" class="nav-btn">👥 Participantes</a>
-        </div>          
-    </nav>
+  <!-- Navegación superior -->
+  <nav class="top-navigation">
+    <div class="nav-links">
+      <a href="/" class="nav-btn home">🏠 Home</a>
+      <a href="/galeria" class="nav-btn gallery">🖼️ Galería QR</a>
+      <a href="/salida" class="nav-btn exit">🏃‍♂️ Registrar Salida</a>
+      <a href="/llegada" class="nav-btn arrival">🏁 Registrar Llegada</a>
+      <a href="/tiempos" class="nav-btn arrival">⏰ Tiempos</a>
+      <a href="/participantes" class="nav-btn">👥 Participantes</a>
+    </div>
+  </nav>
 
-    <div class="container">
-        <header class="page-header">
-            <h1>👥 Registro de Participantes</h1>
-            <p class="subtitle">Crea tu código QR para el evento</p>
-        </header>
+  <div class="container">
+    <header class="page-header">
+      <h1>👥 Registro de Participantes</h1>
+      <p class="subtitle">Crea tu código QR para el evento</p>
+    </header>
 
-        <!-- Selector de modo de registro -->
-        <div class="mode-selector">
-            <button id="modoIndividual" class="mode-btn active">👤 Registro Individual</button>
-            <button id="modoMasivo" class="mode-btn">📊 Carga Masiva Excel</button>
-        </div>
-
-        <!-- Formulario de registro individual -->
-        <div id="registroIndividual" class="registration-section">
-            <form id="registroForm" class="registration-form">
-                <div class="form-group">
-                    <label for="numero">
-                        <span class="label-icon">🔢</span>
-                        Pareja Número:
-                    </label>
-                    <input type="number" id="numero" name="numero" required placeholder="Ej: 001, 100, 250" min="1">
-                    <small class="field-hint">Este número aparecerá en el dorsal del participante</small>
-                </div>
-<br>
-                <div class="form-group">
-                    <label for="nombre_p1">
-                        <span class="label-icon">👤</span>
-                        Nombre del Participante 1:
-                    </label>
-                    <input type="text" id="nombre_p1" name="nombre_p1" required placeholder="Ingresa el nombre completo">
-                </div>
-<br>
-                                <div class="form-group">
-                    <label for="nombre_p2">
-                        <span class="label-icon">👤</span>
-                        Nombre del Participante 2:
-                    </label>
-                    <input type="text" id="nombre_p2" name="nombre_p2" required placeholder="Ingresa el nombre completo">
-                </div>
-<br>    
-                <div class="form-group">
-                    <label for="categoria">
-                        <span class="label-icon">🏆</span>
-                        Categoría:
-                    </label>
-                    <select id="categoria" name="categoria" required>
-                        <option value="">🔽 Seleccione categoría</option>
-                        <option value="Principiante Femenino">🟢 Principiante Femenino</option>
-                        <option value="Avanzado Femenino">🔴 Avanzado Femenino</option>
-                        <option value="Principiante Masculino">🟢 Principiante Masculino</option>
-                        <option value="Avanzado Masculino">🔴 Avanzado Masculino</option>
-                    </select>
-                </div>
-
-                <button type="submit" class="submit-btn">
-                    <span class="btn-icon">✅</span>
-                    <span class="btn-text">Registrar Participante</span>
-                    <span class="btn-loader hidden">⏳</span>
-                </button>
-            </form>
-        </div>
-
-        <!-- Sección de carga masiva -->
-        <div id="cargaMasiva" class="registration-section hidden">
-            <div class="upload-section">
-                <h3>📊 Carga Masiva desde Excel</h3>
-                <p class="upload-description">
-                    Sube un archivo Excel (.xlsx) con las columnas: <strong>Número</strong>, <strong>Nombre</strong>, <strong>Categoría</strong>
-                </p>
-                
-                <div class="file-upload-zone" id="uploadZone">
-                    <div class="upload-content">
-                        <div class="upload-icon">📁</div>
-                        <p>Arrastra tu archivo Excel aquí o haz clic para seleccionar</p>
-                        <input type="file" id="fileInput" accept=".xlsx,.xls" style="display: none;">
-                        <button type="button" class="upload-btn" onclick="document.getElementById('fileInput').click()">
-                            📎 Seleccionar Archivo
-                        </button>
-                    </div>
-                </div>
-
-                <!-- Vista previa de datos -->
-                <div id="previewSection" class="preview-section hidden">
-                    <h4>👀 Vista Previa de Datos</h4>
-                    <div class="preview-stats">
-                        <span id="totalRegistros" class="stat-badge">0 registros</span>
-                        <span id="errorCount" class="stat-badge error hidden">0 errores</span>
-                    </div>
-                    
-                    <div class="preview-table-container">
-                        <table id="previewTable" class="preview-table">
-                            <thead>
-                                <tr>
-                                    <th>Estado</th>
-                                    <th>Número</th>
-                                    <th>Nombre</th>
-                                    <th>Categoría</th>
-                                </tr>
-                            </thead>
-                            <tbody id="previewTableBody">
-                            </tbody>
-                        </table>
-                    </div>
-
-                    <div class="preview-actions">
-                        <button id="procesarLote" class="submit-btn">
-                            <span class="btn-icon">🚀</span>
-                            <span class="btn-text">Procesar Lote</span>
-                            <span class="btn-loader hidden">⏳</span>
-                        </button>
-                        <button onclick="cancelarCarga()" class="secondary-btn">
-                            ❌ Cancelar
-                        </button>
-                    </div>
-                </div>
-
-                <!-- Progreso de procesamiento -->
-                <div id="progressSection" class="progress-section hidden">
-                    <h4>⚡ Procesando Registros...</h4>
-                    <div class="progress-bar">
-                        <div id="progressFill" class="progress-fill"></div>
-                    </div>
-                    <div class="progress-info">
-                        <span id="progressText">0 / 0 procesados</span>
-                        <span id="progressPercent">0%</span>
-                    </div>
-                </div>
-
-                <!-- Resultados del procesamiento -->
-                <div id="resultsSection" class="results-section hidden">
-                    <h4>📋 Resultados del Procesamiento</h4>
-                    <div class="results-summary">
-                        <div class="result-stat success">
-                            <span class="stat-number" id="successCount">0</span>
-                            <span class="stat-label">Exitosos</span>
-                        </div>
-                        <div class="result-stat error">
-                            <span class="stat-number" id="failCount">0</span>
-                            <span class="stat-label">Fallidos</span>
-                        </div>
-                    </div>
-                    
-                    <div id="errorDetails" class="error-details hidden">
-                        <h5>❌ Errores Encontrados:</h5>
-                        <ul id="errorList"></ul>
-                    </div>
-
-                    <button onclick="resetMasivaCarga()" class="secondary-btn">
-                        🔄 Nueva Carga
-                    </button>
-                </div>
-
-                <!-- Template Excel -->
-                <div class="template-section">
-                    <h4>📋 Plantilla Excel</h4>
-                    <p>Descarga la plantilla con el formato correcto:</p>
-                    <button onclick="descargarPlantilla()" class="template-btn">
-                        📥 Descargar Plantilla Excel
-                    </button>
-                </div>
-            </div>
-        </div>
-
-        <!-- Resultado individual -->
-        <div id="resultado" class="hidden result-card">
-            <div class="result-header">
-                <h2>🎉 ¡Participante registrado exitosamente!</h2>
-            </div>
-            
-            <div class="result-content">
-                <div class="participant-details">
-                    <p class="detail-item">
-                        <span class="detail-icon">🔢</span>
-                        <strong>Número:</strong> 
-                        <span id="numeroParticipante"></span>
-                    </p>
-                    <p class="detail-item">
-                        <span class="detail-icon">👤</span>
-                        <strong>Nombre:</strong> 
-                        <span id="nombreParticipante"></span>
-                    </p>
-                    <p class="detail-item">
-                        <span class="detail-icon">🏆</span>
-                        <strong>Categoría:</strong> 
-                        <span id="categoriaParticipante"></span>
-                    </p>
-                </div>
-                
-                <div id="qrContainer" class="qr-display">
-                    <!-- QR code will be inserted here -->
-                </div>
-                
-                <div class="result-actions">
-                    <a id="descargarQR" download="qr_participante.png" class="download-btn">
-                        📥 Descargar QR
-                    </a>
-                    <button onclick="resetForm()" class="secondary-btn">
-                        🔄 Registrar Otro
-                    </button>
-                </div>
-            </div>
-        </div>
-
-        <div class="quick-actions">
-            <h3>🚀 Acciones Rápidas</h3>
-            <div class="actions-grid">
-                <a href="/galeria" class="action-card">
-                    <div class="action-icon">🖼️</div>
-                    <div class="action-content">
-                        <h4>Ver Galería</h4>
-                        <p>Explora todos los códigos QR generados</p>
-                    </div>
-                </a>
-                
-                <a href="/escaneo" class="action-card">
-                    <div class="action-icon">📱</div>
-                    <div class="action-content">
-                        <h4>Escanear QR</h4>
-                        <p>Identifica participantes escaneando</p>
-                    </div>
-                </a>
-                
-                <a href="/reportes" class="action-card">
-                    <div class="action-icon">📊</div>
-                    <div class="action-content">
-                        <h4>Ver Reportes</h4>
-                        <p>Estadísticas y análisis del evento</p>
-                    </div>
-                </a>
-            </div>
-        </div>
-
-        <footer class="page-footer">
-            <p>💡 <strong>Tip:</strong> Guarda el código QR en un lugar seguro para el día del evento</p>
-        </footer>
+    <!-- Selector de modo de registro -->
+    <div class="mode-selector">
+      <button id="modoIndividual" class="mode-btn active">👤 Registro Individual</button>
+      <button id="modoMasivo" class="mode-btn">📊 Carga Masiva Excel</button>
     </div>
 
-    <script src="script.js"></script>
-    <style>
-        /* Estilos adicionales para las nuevas funcionalidades */
-        .mode-selector {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 20px;
-            justify-content: center;
-        }
+    <!-- Formulario de registro individual -->
+    <div id="registroIndividual" class="registration-section">
+      <form id="registroForm" class="registration-form" novalidate>
+        <div class="form-group">
+          <label for="numero">
+            <span class="label-icon">🔢</span>
+            Pareja Número:
+          </label>
+          <input type="number" id="numero" name="numero" required placeholder="Ej: 001, 100, 250" min="1"/>
+          <small class="field-hint">Este número aparecerá en el dorsal del participante</small>
+        </div>
 
-        .mode-btn {
-            padding: 12px 24px;
-            border: 2px solid #2196F3;
-            background: transparent;
-            color: #2196F3;
-            border-radius: 8px;
-            cursor: pointer;
-            font-weight: bold;
-            transition: all 0.3s ease;
-        }
+        <br/>
 
-        .mode-btn.active {
-            background: #2196F3;
-            color: white;
-        }
+        <div class="form-group">
+          <label for="nombre_p1">
+            <span class="label-icon">👤</span>
+            Nombre del Participante 1:
+          </label>
+          <input type="text" id="nombre_p1" name="nombre_p1" required placeholder="Ingresa el nombre completo"/>
+        </div>
 
-        .mode-btn:hover {
-            background: #2196F3;
-            color: white;
-        }
+        <br/>
 
-        .registration-section {
-            transition: all 0.3s ease;
-        }
+        <div class="form-group">
+          <label for="nombre_p2">
+            <span class="label-icon">👤</span>
+            Nombre del Participante 2:
+          </label>
+          <input type="text" id="nombre_p2" name="nombre_p2" required placeholder="Ingresa el nombre completo"/>
+        </div>
 
-        .field-hint {
-            color: #888;
-            font-size: 12px;
-            margin-top: 5px;
-            display: block;
-        }
+        <br/>
 
-        .upload-section {
-            background: #1C1C1C;
-            border: 2px solid #2196F3;
-            border-radius: 12px;
-            padding: 30px;
-            margin: 20px 0;
-        }
+        <div class="form-group">
+          <label for="categoria">
+            <span class="label-icon">🏆</span>
+            Categoría:
+          </label>
+          <select id="categoria" name="categoria" required>
+            <option value="">🔽 Seleccione categoría</option>
+            <option value="Principiante Femenino">🟢 Principiante Femenino</option>
+            <option value="Intermedio Femenino">🟡 Intermedio Femenino</option>
+            <option value="Avanzado Femenino">🔴 Avanzado Femenino</option>
+            <option value="Principiante Masculino">🟢 Principiante Masculino</option>
+            <option value="Intermedio Masculino">🟡 Intermedio Masculino</option>
+            <option value="Avanzado Masculino">🔴 Avanzado Masculino</option>
+          </select>
+        </div>
 
-        .file-upload-zone {
-            border: 3px dashed #2196F3;
-            border-radius: 12px;
-            padding: 40px;
-            text-align: center;
-            margin: 20px 0;
-            transition: all 0.3s ease;
-            cursor: pointer;
-        }
+        <button type="submit" class="submit-btn">
+          <span class="btn-icon">✅</span>
+          <span class="btn-text">Registrar Participante</span>
+          <span class="btn-loader hidden">⏳</span>
+        </button>
+      </form>
+    </div>
 
-        .file-upload-zone:hover {
-            border-color: #00FF3C;
-            background: rgba(0, 255, 60, 0.05);
-        }
+    <!-- Sección de carga masiva -->
+    <div id="cargaMasiva" class="registration-section hidden">
+      <div class="upload-section">
+        <h3>📊 Carga Masiva desde Excel</h3>
+        <p class="upload-description">
+          Sube un archivo Excel (.xlsx) con las columnas:
+          <strong>Número</strong>, <strong>NombreP1</strong>, <strong>NombreP2</strong>, <strong>Categoría</strong>
+        </p>
 
-        .file-upload-zone.dragover {
-            border-color: #00FF3C;
-            background: rgba(0, 255, 60, 0.1);
-        }
+        <div class="file-upload-zone" id="uploadZone">
+          <div class="upload-content">
+            <div class="upload-icon">📁</div>
+            <p>Arrastra tu archivo Excel aquí o haz clic para seleccionar</p>
+            <input type="file" id="fileInput" accept=".xlsx,.xls" style="display:none;"/>
+            <button type="button" class="upload-btn" onclick="document.getElementById('fileInput').click()">
+              📎 Seleccionar Archivo
+            </button>
+          </div>
+        </div>
 
-        .upload-icon {
-            font-size: 48px;
-            margin-bottom: 10px;
-        }
+        <!-- Vista previa de datos -->
+        <div id="previewSection" class="preview-section hidden">
+          <h4>👀 Vista Previa de Datos</h4>
+          <div class="preview-stats">
+            <span id="totalRegistros" class="stat-badge">0 registros</span>
+            <span id="errorCount" class="stat-badge error hidden">0 errores</span>
+          </div>
 
-        .upload-btn {
-            margin-top: 15px;
-            padding: 10px 20px;
-            background: #2196F3;
-            color: white;
-            border: none;
-            border-radius: 6px;
-            cursor: pointer;
-        }
+          <div class="preview-table-container">
+            <table id="previewTable" class="preview-table">
+              <thead>
+                <tr>
+                  <th>Estado</th>
+                  <th>Número</th>
+                  <th>Nombre</th>
+                  <th>Categoría</th>
+                </tr>
+              </thead>
+              <tbody id="previewTableBody"></tbody>
+            </table>
+          </div>
 
-        .preview-section {
-            margin-top: 20px;
-            padding: 20px;
-            background: rgba(33, 150, 243, 0.1);
-            border-radius: 8px;
-        }
+          <div class="preview-actions">
+            <button id="procesarLote" class="submit-btn">
+              <span class="btn-icon">🚀</span>
+              <span class="btn-text">Procesar Lote</span>
+              <span class="btn-loader hidden">⏳</span>
+            </button>
+            <button onclick="cancelarCarga()" class="secondary-btn">❌ Cancelar</button>
+          </div>
+        </div>
 
-        .preview-stats {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 15px;
-        }
+        <!-- Progreso de procesamiento -->
+        <div id="progressSection" class="progress-section hidden">
+          <h4>⚡ Procesando Registros...</h4>
+          <div class="progress-bar">
+            <div id="progressFill" class="progress-fill"></div>
+          </div>
+          <div class="progress-info">
+            <span id="progressText">0 / 0 procesados</span>
+            <span id="progressPercent">0%</span>
+          </div>
+        </div>
 
-        .stat-badge {
-            padding: 5px 12px;
-            background: #2196F3;
-            color: white;
-            border-radius: 15px;
-            font-size: 12px;
-            font-weight: bold;
-        }
+        <!-- Resultados del procesamiento -->
+        <div id="resultsSection" class="results-section hidden">
+          <h4>📋 Resultados del Procesamiento</h4>
+          <div class="results-summary">
+            <div class="result-stat success">
+              <span class="stat-number" id="successCount">0</span>
+              <span class="stat-label">Exitosos</span>
+            </div>
+            <div class="result-stat error">
+              <span class="stat-number" id="failCount">0</span>
+              <span class="stat-label">Fallidos</span>
+            </div>
+          </div>
 
-        .stat-badge.error {
-            background: #ff4444;
-        }
+          <div id="errorDetails" class="error-details hidden">
+            <h5>❌ Errores Encontrados:</h5>
+            <ul id="errorList"></ul>
+          </div>
 
-        .preview-table-container {
-            max-height: 300px;
-            overflow-y: auto;
-            margin: 15px 0;
-        }
+          <button onclick="resetMasivaCarga()" class="secondary-btn">🔄 Nueva Carga</button>
+        </div>
 
-        .preview-table {
-            width: 100%;
-            border-collapse: collapse;
-            background: white;
-            border-radius: 8px;
-            overflow: hidden;
-        }
+        <!-- Template Excel -->
+        <div class="template-section">
+          <h4>📋 Plantilla Excel</h4>
+          <p>Descarga la plantilla con el formato correcto:</p>
+          <button onclick="descargarPlantilla()" class="template-btn">
+            📥 Descargar Plantilla Excel
+          </button>
+        </div>
+      </div>
+    </div>
 
-        .preview-table th {
-            background: #2196F3;
-            color: white;
-            padding: 12px;
-            text-align: left;
-        }
+    <!-- Resultado individual -->
+    <div id="resultado" class="hidden result-card">
+      <div class="result-header">
+        <h2>🎉 ¡Participante registrado exitosamente!</h2>
+      </div>
 
-        .preview-table td {
-            padding: 10px 12px;
-            border-bottom: 1px solid #eee;
-            color: #333;
-        }
+      <div class="result-content">
+        <div class="participant-details">
+          <p class="detail-item">
+            <span class="detail-icon">🔢</span>
+            <strong>Número:</strong>
+            <span id="numeroParticipante"></span>
+          </p>
+          <p class="detail-item">
+            <span class="detail-icon">👤</span>
+            <strong>Nombre:</strong>
+            <span id="nombreParticipante"></span>
+          </p>
+          <p class="detail-item">
+            <span class="detail-icon">🏆</span>
+            <strong>Categoría:</strong>
+            <span id="categoriaParticipante"></span>
+          </p>
+        </div>
 
-        .preview-table tr.error {
-            background: #ffebee;
-        }
+        <div id="qrContainer" class="qr-display"><!-- QR --></div>
 
-        .preview-table tr.success {
-            background: #e8f5e8;
-        }
+        <div class="result-actions">
+          <a id="descargarQR" download="qr_participante.png" class="download-btn">📥 Descargar QR</a>
+          <button onclick="resetForm()" class="secondary-btn">🔄 Registrar Otro</button>
+        </div>
+      </div>
+    </div>
 
-        .status-icon {
-            font-size: 16px;
-        }
+    <div class="quick-actions">
+      <h3>🚀 Acciones Rápidas</h3>
+      <div class="actions-grid">
+        <a href="/galeria" class="action-card">
+          <div class="action-icon">🖼️</div>
+          <div class="action-content">
+            <h4>Ver Galería</h4>
+            <p>Explora todos los códigos QR generados</p>
+          </div>
+        </a>
 
-        .preview-actions {
-            display: flex;
-            gap: 10px;
-            margin-top: 20px;
-        }
+        <a href="/escaneo" class="action-card">
+          <div class="action-icon">📱</div>
+          <div class="action-content">
+            <h4>Escanear QR</h4>
+            <p>Identifica participantes escaneando</p>
+          </div>
+        </a>
 
-        .progress-section {
-            margin: 20px 0;
-            padding: 20px;
-            background: rgba(0, 255, 60, 0.1);
-            border-radius: 8px;
-        }
+        <a href="/reportes" class="action-card">
+          <div class="action-icon">📊</div>
+          <div class="action-content">
+            <h4>Ver Reportes</h4>
+            <p>Estadísticas y análisis del evento</p>
+          </div>
+        </a>
+      </div>
+    </div>
 
-        .progress-bar {
-            width: 100%;
-            height: 20px;
-            background: #333;
-            border-radius: 10px;
-            overflow: hidden;
-            margin: 10px 0;
-        }
+    <footer class="page-footer">
+      <p>💡 <strong>Tip:</strong> Guarda el código QR en un lugar seguro para el día del evento</p>
+    </footer>
+  </div>
 
-        .progress-fill {
-            height: 100%;
-            background: linear-gradient(90deg, #2196F3, #00FF3C);
-            width: 0%;
-            transition: width 0.3s ease;
-        }
-
-        .progress-info {
-            display: flex;
-            justify-content: space-between;
-            font-weight: bold;
-        }
-
-        .results-section {
-            margin: 20px 0;
-            padding: 20px;
-            background: rgba(0, 255, 60, 0.1);
-            border-radius: 8px;
-        }
-
-        .results-summary {
-            display: flex;
-            gap: 20px;
-            margin: 15px 0;
-        }
-
-        .result-stat {
-            text-align: center;
-            padding: 15px;
-            border-radius: 8px;
-            min-width: 100px;
-        }
-
-        .result-stat.success {
-            background: rgba(0, 255, 60, 0.2);
-            border: 2px solid #00FF3C;
-        }
-
-        .result-stat.error {
-            background: rgba(255, 68, 68, 0.2);
-            border: 2px solid #ff4444;
-        }
-
-        .stat-number {
-            display: block;
-            font-size: 24px;
-            font-weight: bold;
-        }
-
-        .stat-label {
-            font-size: 14px;
-        }
-
-        .error-details {
-            margin-top: 15px;
-            padding: 15px;
-            background: rgba(255, 68, 68, 0.1);
-            border-radius: 8px;
-        }
-
-        .template-section {
-            margin-top: 30px;
-            padding: 20px;
-            background: rgba(255, 215, 0, 0.1);
-            border: 2px solid #FFD700;
-            border-radius: 8px;
-        }
-
-        .template-btn {
-            padding: 10px 20px;
-            background: #FFD700;
-            color: #1C1C1C;
-            border: none;
-            border-radius: 6px;
-            cursor: pointer;
-            font-weight: bold;
-        }
-
-        .hidden {
-            display: none !important;
-        }
-    </style>
+  <!-- Tu JS principal (con el modal dinámico) -->
+  <script src="script.js"></script>
 </body>
 </html>
