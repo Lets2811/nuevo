@@ -1,4 +1,4 @@
-// tiempos.js - Script simplificado para trabajar con /api/llegadas
+// tiempos.js - Script con zona horaria local del navegador
 
 // Variables globales
 let tiemposCompletados = [];
@@ -23,6 +23,7 @@ const podiumGrid = document.getElementById('podiumGrid');
 // Inicialización
 document.addEventListener('DOMContentLoaded', function() {
     console.log('⏱️ Sistema de tiempos completados inicializado');
+    console.log('🌍 Zona horaria del navegador:', Intl.DateTimeFormat().resolvedOptions().timeZone);
     
     // Event listeners
     categoriaFilter.addEventListener('change', aplicarFiltroCategoria);
@@ -34,6 +35,31 @@ document.addEventListener('DOMContentLoaded', function() {
     // Auto-actualización cada 30 segundos
     //setInterval(cargarTiempos, 30000);
 });
+
+// ===== FUNCIÓN NUEVA: Formatear timestamp a hora local =====
+function formatearHoraLocal(timestamp) {
+    const fecha = new Date(timestamp);
+    return fecha.toLocaleString('es-CO', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+        hour12: false
+    });
+}
+
+// ===== FUNCIÓN NUEVA: Formatear solo la hora (sin fecha) =====
+function formatearSoloHora(timestamp) {
+    const fecha = new Date(timestamp);
+    return fecha.toLocaleTimeString('es-CO', {
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+        hour12: false
+    });
+}
 
 // Cargar tiempos desde el servidor
 async function cargarTiempos() {
@@ -53,10 +79,24 @@ async function cargarTiempos() {
             throw new Error('El servidor retornó un error');
         }
         
-        // Los datos ya vienen procesados desde el servidor
-        tiemposCompletados = data.data || [];
+        // Procesar los datos y agregar formato local
+        tiemposCompletados = (data.data || []).map(participante => ({
+            ...participante,
+            // Formatear las fechas usando la zona horaria local del navegador
+            salidaFormateada: formatearHoraLocal(participante.salida),
+            llegadaFormateada: formatearHoraLocal(participante.llegada),
+            salidaSoloHora: formatearSoloHora(participante.salida),
+            llegadaSoloHora: formatearSoloHora(participante.llegada)
+        }));
         
         console.log(`✅ ${tiemposCompletados.length} tiempos completados cargados`);
+        console.log('🕐 Ejemplo de formateo:', tiemposCompletados[0] ? {
+            nombre: tiemposCompletados[0].nombre,
+            salidaOriginal: new Date(tiemposCompletados[0].salida),
+            salidaFormateada: tiemposCompletados[0].salidaFormateada,
+            llegadaOriginal: new Date(tiemposCompletados[0].llegada),
+            llegadaFormateada: tiemposCompletados[0].llegadaFormateada
+        } : 'No hay datos');
         
         // Actualizar categorías disponibles
         actualizarFiltrosCategorias();
@@ -78,7 +118,7 @@ function actualizarFiltrosCategorias() {
     const seleccionActual = categoriaFilter.value;
     
     // Limpiar opciones existentes excepto "Todas"
-    categoriaFilter.innerHTML = '<option value="all">Todas las categorías</option>';
+    categoriaFilter.innerHTML = '<option value="all">Elige categoria</option>';
     
     // Agregar categorías encontradas
     categorias.forEach(categoria => {
@@ -93,12 +133,13 @@ function actualizarFiltrosCategorias() {
         categoriaFilter.value = seleccionActual;
     }
 }
+
 function obtenerNombreArchivoCategoria() {
     const categoria = document.getElementById('categoriaFilter')?.value || 'general';
     return categoria === 'all' ? 'todas_las_categorias' : categoria.replace(/\s+/g, '_').toLowerCase();
-  }
-  
-  function descargarTablaComoZip() {
+}
+
+function descargarTablaComoZip() {
     const listaOriginal = document.getElementById('timesList');
     const tablaContainer = document.getElementById('tableContainer');
     const categoria = obtenerNombreArchivoCategoria();
@@ -116,7 +157,6 @@ function obtenerNombreArchivoCategoria() {
     tablaContainer.style.overflow = 'visible';
   
     const zip = new JSZip();
-    const capturas = [];
   
     // Crear contenedor temporal oculto
     const tempContainer = document.createElement('div');
@@ -132,7 +172,7 @@ function obtenerNombreArchivoCategoria() {
   
     const capturarBloque = (i) => {
       return new Promise((resolve) => {
-        tempContainer.innerHTML = ''; // Limpiar
+        tempContainer.innerHTML = '';
   
         const ul = document.createElement('ul');
         ul.className = 'times-list';
@@ -142,7 +182,6 @@ function obtenerNombreArchivoCategoria() {
   
         tempContainer.appendChild(ul);
   
-        // Esperar un frame para renderizar
         requestAnimationFrame(() => {
           html2canvas(tempContainer).then(canvas => {
             canvas.toBlob(blob => {
@@ -160,129 +199,36 @@ function obtenerNombreArchivoCategoria() {
         await capturarBloque(i);
       }
   
-      // Eliminar contenedor temporal
       document.body.removeChild(tempContainer);
-  
-      // Restaurar estilos
       tablaContainer.style.maxHeight = estiloOriginal;
       tablaContainer.style.overflow = overflowOriginal;
   
-      // Descargar el zip
       zip.generateAsync({ type: 'blob' }).then(content => {
         saveAs(content, `${categoria}.zip`);
       });
     })();
-  }
-  
-  function capturarTabla() {
-    const tabla = document.querySelector('.times-table');
-    const tablaContainer = document.getElementById('tableContainer');
-  
-    if (!tabla) {
-      alert('No se encontró la tabla');
-      return;
-    }
-  
-    const estiloOriginal = tablaContainer.style.maxHeight;
-    const overflowOriginal = tablaContainer.style.overflow;
-  
-    tablaContainer.style.maxHeight = 'none';
-    tablaContainer.style.overflow = 'visible';
-  
-    setTimeout(() => {
-      html2canvas(tabla).then(canvas => {
-        tablaContainer.style.maxHeight = estiloOriginal;
-        tablaContainer.style.overflow = overflowOriginal;
-  
-        const nombre = obtenerNombreArchivoCategoria();
-        const link = document.createElement('a');
-        link.download = `${nombre}.png`;
-        link.href = canvas.toDataURL('image/png');
-        link.click();
-      });
-    }, 100);
-  }
-  
-  
-  function capturarTablaMobile() {
-    const tabla = document.querySelector('.times-table');
-    const tablaContainer = document.getElementById('tableContainer');
-  
-    if (!tabla) {
-      alert('No se encontró la tabla');
-      return;
-    }
-  
-    // Guardar estilo original
-    const estiloOriginal = tablaContainer.style.maxHeight;
-    const overflowOriginal = tablaContainer.style.overflow;
-  
-    // Expandir sin scroll
-    tablaContainer.style.maxHeight = 'none';
-    tablaContainer.style.overflow = 'visible';
-  
-    // Esperar pequeño delay para que DOM se actualice
-    setTimeout(() => {
-      html2canvas(tabla).then(canvas => {
-        // Restaurar estilos
-        tablaContainer.style.maxHeight = estiloOriginal;
-        tablaContainer.style.overflow = overflowOriginal;
-  
-        const imageData = canvas.toDataURL('image/png');
-  
-        // Detectar si es móvil
-        const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-  
-        if (isMobile) {
-          // Abrir imagen en nueva pestaña
-          const nuevaVentana = window.open();
-          if (nuevaVentana) {
-            nuevaVentana.document.write(`<img src="${imageData}" style="width:100%;"/>`);
-          } else {
-            alert('Por favor, permite ventanas emergentes para ver la imagen');
-          }
-        } else {
-          // Forzar descarga en escritorio
-          const link = document.createElement('a');
-          link.download = 'tiempos_completados.png';
-          link.href = imageData;
-          link.click();
-        }
-      });
-    }, 100);
-  }
-  
-  
+}
 
 // Aplicar filtro por categoría
-// Aplicar filtro por categoría - SOLO REEMPLAZA ESTA FUNCIÓN
 function aplicarFiltroCategoria() {
     categoriaActual = categoriaFilter.value;
     
-    // Obtener referencias a las secciones
     const timesTable = document.querySelector('.times-table');
     const podiumSection = document.getElementById('podiumSection');
     
-    // Si está en "all", ocultar las secciones y salir
     if (categoriaActual === 'all') {
         if (timesTable) timesTable.style.display = 'none';
         if (podiumSection) podiumSection.style.display = 'none';
         return;
     }
     
-    // Si hay una categoría específica, mostrar las secciones
     if (timesTable) timesTable.style.display = 'block';
     
-    // Filtrar por categoría
     let datosFiltrados = tiemposCompletados;
     if (categoriaActual !== 'all') {
         datosFiltrados = tiemposCompletados.filter(t => t.categoria === categoriaActual);
     }
     
-    // Los datos ya vienen ordenados por tiempo desde el servidor
-    // pero si queremos reordenar por posición de llegada podríamos hacerlo aquí
-    
-    // Mostrar resultados
     mostrarResultados(datosFiltrados);
     actualizarEstadisticas(datosFiltrados);
 }
@@ -296,24 +242,18 @@ function mostrarResultados(datos) {
         return;
     }
     
-    // Limpiar lista
     timesList.innerHTML = '';
     
-    // Crear elementos de la lista
     datos.forEach((participante, index) => {
         const item = crearElementoTiempo(participante, index + 1);
         timesList.appendChild(item);
     });
     
-    // Mostrar tabla
     ocultarCargando();
     tableContainer.style.display = 'block';
     
-    // Mostrar podium con top 3
     if (datos.length > 0) {
-        const categoria = categoriaActual;
         const datosFiltrados = categoriaActual == 'all' ? datos : datos.filter(t => t.categoria === categoriaActual);
-        console.log('📊 Datos filtrados para el podium:', categoriaActual);
         mostrarPodium(datosFiltrados.slice(0, 3));
     }
 }
@@ -323,25 +263,18 @@ function crearElementoTiempo(participante, posicion) {
     const li = document.createElement('li');
     li.className = 'time-item';
     
-    // Agregar clase de podium para top 3
     if (posicion === 1) li.classList.add('podium-1');
     else if (posicion === 2) li.classList.add('podium-2');
     else if (posicion === 3) li.classList.add('podium-3');
     
-    // Agregar medalla para top 3
     let medalla = '';
     if (posicion === 1) medalla = '🥇 ';
     else if (posicion === 2) medalla = '🥈 ';
     else if (posicion === 3) medalla = '🥉 ';
     
-    // Formatear las horas para mostrar solo HH:MM:SS
-    const horaSalida = participante.salidaFormateada ? 
-        participante.salidaFormateada.split(', ')[1] : // Extraer solo la hora
-        new Date(participante.salida).toLocaleTimeString('es-ES');
-        
-    const horaLlegada = participante.llegadaFormateada ? 
-        participante.llegadaFormateada.split(', ')[1] : // Extraer solo la hora
-        new Date(participante.llegada).toLocaleTimeString('es-ES');
+    // CAMBIO IMPORTANTE: Usar las horas formateadas con zona horaria local
+    const horaSalida = participante.salidaSoloHora;
+    const horaLlegada = participante.llegadaSoloHora;
     
     // Vista desktop
     li.innerHTML = `
@@ -363,7 +296,7 @@ function crearElementoTiempo(participante, posicion) {
                 <div class="participant-category">${participante.categoria}</div>
                 <div class="time-details">
                     <div class="time-value total-time"><small>Tiempo:</small><br>${participante.tiempoFormateado}</div>
-        <div class="time-value">${horaSalida} / ${horaLlegada}</div>
+                    <div class="time-value">${horaSalida} / ${horaLlegada}</div>
                 </div>
             </div>
         `;
@@ -412,12 +345,10 @@ function mostrarPodium(top3) {
 function actualizarEstadisticas(datos) {
     const total = datos.length;
     
-    // Calcular tiempo promedio y mejor tiempo
     let promedioTexto = '-';
     let mejorTexto = '-';
     
     if (total > 0) {
-        // Usar los tiempos en milisegundos que vienen del servidor
         const tiempos = datos.map(t => t.tiempo);
         const promedio = tiempos.reduce((a, b) => a + b, 0) / tiempos.length;
         const mejor = Math.min(...tiempos);
@@ -426,7 +357,6 @@ function actualizarEstadisticas(datos) {
         mejorTexto = formatearDuracion(mejor);
     }
     
-    // Actualizar elementos
     totalCompletados.textContent = total;
     tiempoPromedio.textContent = promedioTexto;
     tiempoMejor.textContent = mejorTexto;
@@ -504,9 +434,17 @@ window.debugTiempos = function() {
     console.log('🐛 DEBUG - Datos actuales:', {
         tiemposCompletados,
         categoriaActual,
-        totalElementos: tiemposCompletados.length
+        totalElementos: tiemposCompletados.length,
+        zonaHoraria: Intl.DateTimeFormat().resolvedOptions().timeZone,
+        ejemploTimestamp: tiemposCompletados[0] ? {
+            salida: new Date(tiemposCompletados[0].salida),
+            llegada: new Date(tiemposCompletados[0].llegada),
+            salidaFormateada: tiemposCompletados[0].salidaFormateada,
+            llegadaFormateada: tiemposCompletados[0].llegadaFormateada
+        } : null
     });
 };
 
-console.log('⏱️ tiempos.js optimizado cargado - Trabajando con /api/llegadas');
+console.log('⏱️ tiempos.js con zona horaria local cargado');
+console.log('🌍 Zona horaria detectada:', Intl.DateTimeFormat().resolvedOptions().timeZone);
 console.log('💡 Usa debugTiempos() en la consola para ver los datos');

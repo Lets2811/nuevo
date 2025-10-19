@@ -736,6 +736,8 @@ app.get('/api/participante-por-numero/:numero', async (req, res) => {
 
 console.log('✅ Endpoint de búsqueda por número inicializado');
 
+// ===== REEMPLAZAR LA RUTA /api/llegadas EN server.js =====
+
 app.get('/api/llegadas', async (req, res) => {
     try {
         const { ordenar = 'tiempo' } = req.query;
@@ -765,34 +767,15 @@ app.get('/api/llegadas', async (req, res) => {
 
                 const tiempoFormateado = `${horas.toString().padStart(2, '0')}:${minutos.toString().padStart(2, '0')}:${segundos.toString().padStart(2, '0')}`;
 
-                const salidaFormateada = new Date(timestampSalida).toLocaleString('es-CO', {
-                    day: '2-digit',
-                    month: '2-digit',
-                    year: 'numeric',
-                    hour: '2-digit',
-                    minute: '2-digit',
-                    second: '2-digit',
-                    hour12: false
-                });
-
-                const llegadaFormateada = new Date(timestampLlegada).toLocaleString('es-CO', {
-                    day: '2-digit',
-                    month: '2-digit',
-                    year: 'numeric',
-                    hour: '2-digit',
-                    minute: '2-digit',
-                    second: '2-digit',
-                    hour12: false
-                });
-
+                // CAMBIO IMPORTANTE: Enviar timestamps en milisegundos para que el cliente los formatee
                 resultados.push({
                     participanteId: llegada.participanteId,
                     nombre: llegada.nombre,
                     categoria: llegada.categoria,
-                    salida: timestampSalida,
-                    llegada: timestampLlegada,
-                    salidaFormateada,
-                    llegadaFormateada,
+                    salida: timestampSalida,  // Timestamp en milisegundos
+                    llegada: timestampLlegada, // Timestamp en milisegundos
+                    salidaISO: new Date(timestampSalida).toISOString(), // También enviar ISO para referencia
+                    llegadaISO: new Date(timestampLlegada).toISOString(), // También enviar ISO para referencia
                     tiempo: tiempoMs,
                     tiempoFormateado,
                     numeroSalida: salida.numeroSalida,
@@ -817,7 +800,6 @@ app.get('/api/llegadas', async (req, res) => {
                 break;
         }
 
-        // No se aplica paginación, se devuelven todos
         res.json({
             success: true,
             data: resultados,
@@ -835,6 +817,8 @@ app.get('/api/llegadas', async (req, res) => {
         });
     }
 });
+
+console.log('✅ API /api/llegadas actualizada con soporte de zona horaria del cliente');
 
 // ===== API DE TIEMPOS =====
 // ===== RUTAS SIMPLIFICADAS PARA TIEMPOS COMPLETADOS =====
