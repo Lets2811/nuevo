@@ -2,6 +2,8 @@
 let codeReader = null;
 let isScanning = false;
 let participantesCache = new Map();
+let currentMode = 'qr'; // 'qr' o 'manual'
+let participanteSeleccionado = null;
 
 // Timer de alta precisión
 const getHighPrecisionTimestamp = () => {
@@ -21,22 +23,201 @@ const statusDisplay = document.getElementById('scanner-status');
 const resultContainer = document.getElementById('resultado');
 const overlay = document.getElementById('confirmationOverlay');
 
+// Elementos del registro manual
+const manualSection = document.getElementById('manualSection');
+const scannerSection = document.getElementById('scannerSection');
+const numeroInput = document.getElementById('numeroParticipante');
+const registrarManualBtn = document.getElementById('registrarManualBtn');
+const participantPreview = document.getElementById('participantPreview');
+
 // Inicialización
 document.addEventListener('DOMContentLoaded', function () {
     console.log('🏁 Sistema de registro de llegadas inicializado');
     preloadParticipants();
     startButton.addEventListener('click', toggleScanner);
     initializeQRReader();
+    
+    // Event listeners para registro manual
+    if (numeroInput) {
+        numeroInput.addEventListener('input', buscarParticipantePorNumero);
+        numeroInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter' && !registrarManualBtn.disabled) {
+                registrarLlegadaManual();
+            }
+        });
+    }
 });
+
+// ===== FUNCIONES DE MODO DE REGISTRO =====
+
+function toggleRegistrationMode() {
+    const toggleBtn = document.getElementById('toggleModeBtn');
+    const toggleText = document.getElementById('toggleModeText');
+    
+    if (currentMode === 'qr') {
+        // Cambiar a modo manual
+        currentMode = 'manual';
+        scannerSection.classList.add('mode-hidden');
+        manualSection.classList.remove('mode-hidden');
+        toggleText.textContent = '📷 Cambiar a Escaneo QR';
+        
+        // Detener el escáner si está activo
+        if (isScanning) {
+            stopScanning();
+        }
+        
+        // Focus en el input
+        setTimeout(() => numeroInput.focus(), 300);
+        
+        console.log('🔄 Modo cambiado a: Manual');
+    } else {
+        // Cambiar a modo QR
+        currentMode = 'qr';
+        manualSection.classList.add('mode-hidden');
+        scannerSection.classList.remove('mode-hidden');
+        toggleText.textContent = '📝 Cambiar a Registro Manual';
+        
+        // Limpiar formulario manual
+        limpiarFormularioManual();
+        
+        console.log('🔄 Modo cambiado a: QR');
+    }
+}
+
+// ===== FUNCIONES DE REGISTRO MANUAL =====
+
+function buscarParticipantePorNumero() {
+    const numero = numeroInput.value.trim();
+    
+    if (!numero || numero === '') {
+        ocultarPreviewParticipante();
+        return;
+    }
+    
+    // Buscar en el cache primero
+    let participante = null;
+    for (let [id, p] of participantesCache) {
+        if (p.numero && p.numero.toString() === numero) {
+            participante = p;
+            break;
+        }
+    }
+    
+    if (participante) {
+        mostrarPreviewParticipante(participante);
+        participanteSeleccionado = participante;
+        registrarManualBtn.disabled = false;
+    } else {
+        // Si no está en cache, buscar en el servidor
+        buscarParticipanteEnServidor(numero);
+    }
+}
+
+async function buscarParticipanteEnServidor(numero) {
+    try {
+        const response = await fetch(`/api/participante-por-numero/${numero}`);
+        
+        if (response.ok) {
+            const data = await response.json();
+            if (data.success && data.participante) {
+                const participante = data.participante;
+                
+                // Agregar al cache
+                participantesCache.set(participante.id, participante);
+                
+                // Mostrar preview
+                mostrarPreviewParticipante(participante);
+                participanteSeleccionado = participante;
+                registrarManualBtn.disabled = false;
+            }
+        } else {
+            ocultarPreviewParticipante();
+            participanteSeleccionado = null;
+            registrarManualBtn.disabled = true;
+        }
+    } catch (error) {
+        console.error('Error al buscar participante:', error);
+        ocultarPreviewParticipante();
+        participanteSeleccionado = null;
+        registrarManualBtn.disabled = true;
+    }
+}
+
+function mostrarPreviewParticipante(participante) {
+    document.getElementById('previewNombre').textContent = participante.nombre;
+    document.getElementById('previewCategoria').textContent = participante.categoria;
+    document.getElementById('previewNumero').textContent = participante.numero || participante.id;
+    
+    participantPreview.classList.add('visible');
+}
+
+function ocultarPreviewParticipante() {
+    participantPreview.classList.remove('visible');
+    participanteSeleccionado = null;
+    registrarManualBtn.disabled = true;
+}
+
+async function registrarLlegadaManual() {
+    if (!participanteSeleccionado) {
+        mostrarNotificacion('⚠️ Selecciona un participante primero', 'warning');
+        return;
+    }
+    
+    try {
+        registrarManualBtn.disabled = true;
+        registrarManualBtn.innerHTML = '<span>⏳</span><span>Registrando...</span>';
+        
+        const arrivalTime = getHighPrecisionTimestamp();
+        console.log(`⚡ Llegada manual registrada a las ${arrivalTime.iso}`);
+        
+        const rta = await registerArrivalInBackground(participanteSeleccionado, arrivalTime);
+        
+        if (rta) {
+            showArrivalResult(participanteSeleccionado, arrivalTime);
+            limpiarFormularioManual();
+        } else {
+            throw new Error('No se pudo registrar la llegada en el servidor');
+        }
+        
+    } catch (error) {
+        console.error('❌ Error al registrar llegada manual:', error);
+        showError(`Error: ${error.message}`);
+        mostrarNotificacion(`❌ ${error.message}`, 'error');
+    } finally {
+        registrarManualBtn.disabled = false;
+        registrarManualBtn.innerHTML = '<span>🏁</span><span>Registrar Llegada</span>';
+    }
+}
+
+function limpiarFormularioManual() {
+    numeroInput.value = '';
+    ocultarPreviewParticipante();
+    participanteSeleccionado = null;
+    registrarManualBtn.disabled = true;
+}
+
+// ===== FUNCIONES ORIGINALES (QR) =====
 
 // Pre-cargar participantes
 async function preloadParticipants() {
     try {
         console.log('📋 Pre-cargando participantes...');
-        // const response = await fetch('/api/participantes-activos');
-        // const participantes = await response.json();
-        // participantes.forEach(p => participantesCache.set(p.id, p));
-        console.log('✅ Cache de participantes listo');
+        const response = await fetch('/api/participantes');
+        
+        if (response.ok) {
+            const data = await response.json();
+            if (data.participantes && Array.isArray(data.participantes)) {
+                data.participantes.forEach(p => {
+                    participantesCache.set(p._id, {
+                        id: p._id,
+                        nombre: p.nombre,
+                        categoria: p.categoria,
+                        numero: p.numero
+                    });
+                });
+                console.log(`✅ Cache de participantes listo: ${participantesCache.size} participantes`);
+            }
+        }
     } catch (error) {
         console.warn('⚠️ No se pudo pre-cargar participantes:', error);
     }
@@ -112,14 +293,14 @@ async function processArrival(qrData, arrivalTime) {
         const participantData = parseQRData(qrData);
         if (!participantData) throw new Error('Código QR inválido');
 
-       const rta = await registerArrivalInBackground(participantData, arrivalTime);
+        const rta = await registerArrivalInBackground(participantData, arrivalTime);
 
-       console.log('Respuesta de registro en background:', rta);
-       if (rta) {
-           showArrivalResult(participantData, arrivalTime);
-       } else {
-           throw new Error('No se pudo registrar la llegada en el servidor');
-       }
+        console.log('Respuesta de registro en background:', rta);
+        if (rta) {
+            showArrivalResult(participantData, arrivalTime);
+        } else {
+            throw new Error('No se pudo registrar la llegada en el servidor');
+        }
 
     } catch (error) {
         console.error('❌ Error al procesar llegada:', error);
@@ -140,41 +321,38 @@ function getNotificationBorderColor(tipo) {
     }
 }
 
- function mostrarNotificacion(mensaje, tipo = 'info') {
-        // Remover notificaciones existentes
-        const existingNotifs = document.querySelectorAll('.notification');
-        existingNotifs.forEach(notif => notif.remove());
-        
-        // Crear nueva notificación
-        const notif = document.createElement('div');
-        notif.className = 'notification';
-        notif.style.cssText = `
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            padding: 15px 20px;
-            background-color: #1C1C1C;
-            color: #FFFFFF;
-            border-radius: 10px;
-            z-index: 10000;
-            max-width: 300px;
-            word-wrap: break-word;
-            box-shadow: 0 6px 20px rgba(0,0,0,0.5);
-            font-weight: bold;
-            animation: slideInRight 0.3s ease;
-            border: 2px solid ${getNotificationBorderColor(tipo)};
-            font-family: Arial, sans-serif;
-        `;
-        notif.textContent = mensaje;
-        
-        document.body.appendChild(notif);
-        
-        // Auto remover después de 4 segundos
-        setTimeout(() => {
-            notif.style.animation = 'slideOutRight 0.3s ease';
-            setTimeout(() => notif.remove(), 300);
-        }, 4000);
-    }
+function mostrarNotificacion(mensaje, tipo = 'info') {
+    const existingNotifs = document.querySelectorAll('.notification');
+    existingNotifs.forEach(notif => notif.remove());
+    
+    const notif = document.createElement('div');
+    notif.className = 'notification';
+    notif.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        padding: 15px 20px;
+        background-color: #1C1C1C;
+        color: #FFFFFF;
+        border-radius: 10px;
+        z-index: 10000;
+        max-width: 300px;
+        word-wrap: break-word;
+        box-shadow: 0 6px 20px rgba(0,0,0,0.5);
+        font-weight: bold;
+        animation: slideInRight 0.3s ease;
+        border: 2px solid ${getNotificationBorderColor(tipo)};
+        font-family: Arial, sans-serif;
+    `;
+    notif.textContent = mensaje;
+    
+    document.body.appendChild(notif);
+    
+    setTimeout(() => {
+        notif.style.animation = 'slideOutRight 0.3s ease';
+        setTimeout(() => notif.remove(), 300);
+    }, 4000);
+}
 
 // Mostrar resultado inmediato
 function showArrivalResult(participantData, arrivalTime) {
@@ -223,16 +401,16 @@ async function registerArrivalInBackground(participantData, arrivalTime) {
         if (response.ok && data.success) {
             console.log('✅ Llegada guardada en BD:', data);
             showBackgroundSuccess();
-            return true
+            return true;
         } else {
             mostrarNotificacion(`❌ Error al guardar llegada: ${data.error || 'Error desconocido'}`, 'error');
-            //throw new Error(data.error || 'Error al guardar en servidor');
             return false;
         }
 
     } catch (error) {
         console.error('❌ Error al guardar en BD:', error);
         showBackgroundError(error.message);
+        return false;
     }
 }
 
@@ -311,7 +489,13 @@ function showError(message) {
 // Reset escáner
 function resetScanner() {
     resultContainer.classList.add('hidden');
-    startScanning();
+    
+    if (currentMode === 'qr') {
+        startScanning();
+    } else {
+        limpiarFormularioManual();
+        numeroInput.focus();
+    }
 }
 
 // Ir a reportes

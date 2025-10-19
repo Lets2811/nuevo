@@ -683,6 +683,59 @@ app.post('/registrar-llegada', async (req, res) => {
     }
 });
 
+// ===== NUEVO ENDPOINT: Buscar participante por número =====
+// Agregar este código en server.js después de las rutas existentes de participantes
+
+app.get('/api/participante-por-numero/:numero', async (req, res) => {
+    try {
+        const numero = parseInt(req.params.numero);
+        
+        if (isNaN(numero) || numero <= 0) {
+            return res.status(400).json({ 
+                success: false,
+                error: 'Número inválido' 
+            });
+        }
+
+        console.log(`🔍 Buscando participante con número: ${numero}`);
+        
+        // Buscar participante por número
+        const participante = await Participante.findOne({ numero: numero });
+        
+        if (!participante) {
+            console.log(`❌ Participante no encontrado con número: ${numero}`);
+            return res.status(404).json({ 
+                success: false,
+                error: `No se encontró participante con número ${numero}` 
+            });
+        }
+
+        console.log(`✅ Participante encontrado: ${participante.nombre}`);
+        
+        res.json({
+            success: true,
+            participante: {
+                id: participante._id.toString(),
+                nombre: participante.nombre,
+                categoria: participante.categoria,
+                numero: participante.numero,
+                horaRegistro: participante.horaRegistro,
+                qrUrl: participante.qrUrl
+            }
+        });
+
+    } catch (error) {
+        console.error('💥 Error al buscar participante por número:', error);
+        res.status(500).json({ 
+            success: false,
+            error: 'Error del servidor al buscar participante',
+            detalles: process.env.NODE_ENV === 'development' ? error.message : undefined
+        });
+    }
+});
+
+console.log('✅ Endpoint de búsqueda por número inicializado');
+
 app.get('/api/llegadas', async (req, res) => {
     try {
         const { ordenar = 'tiempo' } = req.query;
